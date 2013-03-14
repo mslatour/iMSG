@@ -5,12 +5,17 @@ class PhraseNode:
   _right = None
   _rightAmap = None
   _formulaset = None
+  _cost = 0
 
-  def __init__(self, formulaset):
+  def __init__(self, formulaset, cost=0):
     self._formulaset = formulaset
+    self._cost = cost
 
   def isComplex(self):
     return self._type==0
+
+  def cost(self):
+    return self._cost
 
   def addLeft(self, left, amap=None):
     self._left = left
