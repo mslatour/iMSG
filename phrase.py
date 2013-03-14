@@ -6,16 +6,21 @@ class PhraseNode:
   _rightAmap = None
   _formulaset = None
   _cost = 0
+  _span = 1
 
-  def __init__(self, formulaset, cost=0):
+  def __init__(self, formulaset, cost=0, span=1):
     self._formulaset = formulaset
     self._cost = cost
+    self._span = span
 
   def isComplex(self):
     return self._type==0
 
   def cost(self):
     return self._cost
+
+  def span(self):
+    return self._span
 
   def addLeft(self, left, amap=None):
     self._left = left
