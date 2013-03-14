@@ -9,3 +9,6 @@ class PropertyFormula(Formula)
 
 class FormulaSet:
   pass
+
+class ArgumentMap:
+  pass
