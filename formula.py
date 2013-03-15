@@ -81,3 +81,18 @@ class ArgumentMap:
 
   def map(self, arg):
     return self._amap[arg]
+
+  @staticmethod
+  def find_mapping(a, b):
+    if a.predicate()!=b.predicate or\
+       a.__class__.__name__!=b.__class__.__name__:
+      return None
+    if isinstance(a, RelationFormula):
+      map[a.arg1()] = b.arg1()
+      map[a.arg2()] = b.arg2()
+      return ArgumentMap(map)
+    elif isinstance(a, PropertyFormula):
+      map[a.arg1()] = b.arg1()
+      return ArgumentMap(map)
+
+    return None
