@@ -73,11 +73,11 @@ class FormulaSet:
     return s
 
 class ArgumentMap:
-  _amap = { 1 : 1, 2 : 2 }
+  _amap = {1:1,2:2}
 
   def __init__(self, amap={}):
     for arg in amap:
       self._amap[arg] = amap[arg]
 
   def map(self, arg):
-    self._amap[arg]
+    return self._amap[arg]
