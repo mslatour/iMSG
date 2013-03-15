@@ -7,6 +7,27 @@ class Formula:
   def predicate(self):
     return self._predicate
 
+  def __eq__(self, other):
+    return other.predicate() == self.predicate()
+
+  def __lt__(self, other):
+    return NotImplemented
+
+  def __le__(self, other):
+    return NotImplemented
+
+  def __ne__(self, other):
+    return other.predicate() != self.predicate()
+
+  def __gt__(self, other):
+    return NotImplemented
+
+  def __ge__(self, other):
+    return NotImplemented
+
+  def __hash__(self):
+    return int("".join([str(ord(c)) for c in self.predicate()]))
+
 class RelationFormula(Formula):
   _arg1 = 1
   _arg2 = 2
