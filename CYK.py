@@ -14,7 +14,6 @@ import re
 from phrase import *
 from formula import *
 
-MERGE_COST = 1 # TODO this should be located somewhere else
 
 def makeForest(words, meaning, str_to_phr, for_to_phr):
   """TODO write new docstring
@@ -41,7 +40,7 @@ def makeForest(words, meaning, str_to_phr, for_to_phr):
             complex_phrases = get_complex_phrases(for_to_phr, costs, x, y, 
                                 j-i, meaning)
             for phrase in complex_phrases: # expand trees
-              currentCost = phrase.cost
+              currentCost = phrase.cost()
               if currentCost > costs.get((phrase, i, j), float('-inf')):
                 costs[(phrase, i, j)] = currentCost
                 parseForest.setdefault((i,j), {})[phrase] = (x, y, k)
@@ -53,12 +52,10 @@ def initialize_forest(words, str_to_phr):
   costs = {} # holds probability of each entry in 'parseForest'
   for i in xrange(len(words)): # set terminals in triangle table
     word = words[i]
-    span1_phr = (f for f in str_to_phr.get(word,[]) if f.span==1)
-    for formulaset in span1_phr: 
-      # entry at (i,i+1) is dictionary with key=formula and value=(leftChild, rightChild, k)
-      exemplar = ExemplarNode(formulaset, COST_NEW)
+    exemplars = (f for f in str_to_phr.get(word,[]) if f.span()==1)
+    for exemplar in exemplars: 
       parseForest.setdefault((i,i+1), {})[exemplar] = (word, None, i+1) 
-      costs[(exemplar, i, i+1)] = exemplar.cost # set cost of node
+      costs[(exemplar, i, i+1)] = exemplar.cost() # set cost of node
 
   return parseForest, costs
 
@@ -129,7 +126,28 @@ def get_complex_phrases(for_to_phr, costs, x, y, span, meaning, top=False):
 if __name__=='__main__':
   import observations
   obs = observations.observations
-  str_to_phr = {}
+  
+  snake_f = PropertyFormula('snake')
+  bit_f = RelationFormula('bit')
+  pig_f = PropertyFormula('pig')
+  
+  snake_fs = FormulaSet([snake_f])
+  bit_fs = FormulaSet([bit_f])
+  pig_fs = FormulaSet([pig_f])
+  
+  snake_e = ExemplarNode(snake_fs, 1)
+  bit_e = ExemplarNode(bit_fs, 1)
+  pig_e = ExemplarNode(pig_fs, 1)
+
+  snake_e.addString('snake')
+  bit_e.addString('bit')
+  pig_e.addString('pig')
+  
+  str_to_phr = {'snake': [snake_e],
+                'bit': [bit_e],
+                'pig': [pig_e]}
+
+  print str_to_phr
   for_to_phr = {}
   print obs[0]
   parseForest, costs = makeForest(obs[0][0], obs[0][1],\
