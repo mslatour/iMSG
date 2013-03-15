@@ -57,13 +57,13 @@ class PhraseNode:
     self.updateFormulaSet()
 
   def changeLeftArgumentMap(self, amap):
-    phrase = PhraseNode(self.cost()+COST_AMAP, self.span())
+    phrase = PhraseNode(self.cost()+COST_AMAP)
     phrase.addLeft(self.left(), amap)
     phrase.addRight(self.right(),self.rightArgumentMap())
     return phrase
   
   def changeRightArgumentMap(self, amap):
-    phrase = PhraseNode(self.cost()+COST_AMAP, self.span())
+    phrase = PhraseNode(self.cost()+COST_AMAP)
     phrase.addLeft(self.left(), self.leftArgumentMap())
     phrase.addRight(self.right(),amap)
     return phrase
