@@ -5,8 +5,8 @@ from human import Human
 
 class Parent(Human):
 
-    def __init__(self):
-        Human.__init__(self)
+  def __init__(self):
+    Human.__init__(self)
 
-    def communicate(self, meaning, child):
-        pass
+  def communicate(self, meaning, child):
+    pass

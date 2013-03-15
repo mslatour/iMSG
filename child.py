@@ -5,11 +5,11 @@ from human import Human
 
 class Child(Human):
 
-    def __init__(self):
-        Human.__init__(self)
-    
-    def observe(self, meaning):
-        pass
+  def __init__(self):
+    Human.__init__(self)
+  
+  def observe(self, meaning):
+    pass
 
-    def grow_up(self):
-        pass
+  def grow_up(self):
+    pass
