@@ -61,13 +61,15 @@ class PhraseNode:
   
 class ExemplarNode(PhraseNode):
   _type = 1
+
+  _string = None
   
   def __init__(self, formulaset, cost=0):
     PhraseNode.__init__(cost, 1)
     self._formulaset = formulaset
 
   def addString(self, string):
-    self.addleft(string)
+    self._string = string
 
   def string(self):
-    return self.left()
+    return self._string
