@@ -51,7 +51,10 @@ class FormulaSet:
     self._formulas = formulas
 
   def addFormula(self, formula):
-    self._formulas.append(formula)
+    if formula isinstance FormulaSet:
+      self.addFormulaSet(formula)
+    else :
+      self._formulas.append(formula)
 
   def addFormulaSet(self, formulaset):
     for formula in formulaset.formulas:
