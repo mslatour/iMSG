@@ -1,3 +1,5 @@
+from formula import *
+
 COST_AMAP = 1
 COST_MERGE = 2
 COST_SUBSTITUTION = 3
@@ -13,9 +15,8 @@ class PhraseNode:
   _cost = 0
   _span = 1
 
-  def __init__(self, cost=0, span=1):
+  def __init__(self, cost=0):
     self._cost = cost
-    self._span = span
 
   def isComplex(self):
     return self._type==0
@@ -26,36 +27,65 @@ class PhraseNode:
   def span(self):
     return self._span
 
-  def createFormulaSet(self):
+  def updateSpan(self):
+    self._span = 0
+    if self._left is not None:
+      self._span += self._left.span()
+    if self._right is not None:
+      self._span += self._right.span()
+
+  def updateFormulaSet(self):
     fs = FormulaSet()
     if self._left is not None:
+      l = self._left.formulaset()
       if self._leftAmap is not None:
-        fs.addFormula(self._left.applyArgumentMap(self._leftAmap))
+        fs.append(l.applyArgumentMap(self._leftAmap))
       else:
-        fs.addFormula(self._left)
+        fs.append(l)
     if self._right is not None:
+      r = self._right.formulaset()
       if self._rightAmap is not None:
-        fs.addFormula(self._right.applyArgumentMap(self._rightAmap))
+        fs.append(r.applyArgumentMap(self._rightAmap))
       else:
-        fs.addFormula(self._right)
-    return fs
+        fs.append(r)
+    self._formulaset = fs
 
   def addLeft(self, left, amap=None):
     self._left = left
     self._leftAmap = amap
-    self.createFormulaSet()
+    self.updateSpan()
+    self.updateFormulaSet()
+
+  def changeLeftArgumentMap(self, amap):
+    phrase = PhraseNode(self.cost()+COST_AMAP, self.span())
+    phrase.addLeft(self.left(), amap)
+    phrase.addRight(self.right(),self.rightArgumentMap())
+    return phrase
+  
+  def changeRightArgumentMap(self, amap):
+    phrase = PhraseNode(self.cost()+COST_AMAP, self.span())
+    phrase.addLeft(self.left(), self.leftArgumentMap())
+    phrase.addRight(self.right(),amap)
+    return phrase
   
   def left(self):
     return self._left
   
+  def leftArgumentMap(self):
+    return self._leftAmap
+  
   def addRight(self, right, amap=None):
     self._right = right
     self._rightAmap = amap
-    self.createFormulaSet()
+    self.updateSpan()
+    self.updateFormulaSet()
   
   def right(self):
     return self._right
 
+  def rightArgumentMap(self):
+    return self._rightAmap
+  
   def formulaset(self):
     return self._formulaset
   
@@ -65,7 +95,7 @@ class ExemplarNode(PhraseNode):
   _string = None
   
   def __init__(self, formulaset, cost=0):
-    PhraseNode.__init__(cost, 1)
+    PhraseNode.__init__(self, cost)
     self._formulaset = formulaset
 
   def addString(self, string):

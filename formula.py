@@ -48,7 +48,9 @@ class FormulaSet:
   _formulas = []
 
   def __init__(self, formulas=[]):
-    self._formulas = formulas
+    self._formulas=[]
+    for f in formulas:
+      self.append(f)
 
   def append(self, formulaOrFormulaSet):
     if isinstance(formulaOrFormulaSet,FormulaSet):
