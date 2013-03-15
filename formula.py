@@ -7,11 +7,11 @@ class Formula:
   def predicate(self):
     return _predicate
 
-class RelationFormula(Formula)
+class RelationFormula(Formula):
   _arg1 = 1
   _arg2 = 2
 
-  def __init(self, predicate, arg1=1, arg2=2):
+  def __init__(self, predicate, arg1=1, arg2=2):
     Formula.__init__(self, predicate)
     self._arg1 = arg1
     self._arg2 = arg2
@@ -29,9 +29,9 @@ class RelationFormula(Formula)
   def __str__(self):
     return "(%s) %d %d" % (self.predicate(), self.arg1(), self.arg2())
 
-class PropertyFormula(Formula)
+class PropertyFormula(Formula):
   _arg1 = 1
-  def __init(self, predicate, arg1=1):
+  def __init__(self, predicate, arg1=1):
     Formula.__init__(self, predicate)
     self._arg1 = arg1
 
@@ -51,7 +51,7 @@ class FormulaSet:
     self._formulas = formulas
 
   def addFormula(self, formula):
-    if formula isinstance FormulaSet:
+    if isinstance(formula,FormulaSet):
       self.addFormulaSet(formula)
     else :
       self._formulas.append(formula)
