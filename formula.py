@@ -5,7 +5,7 @@ class Formula:
     self._predicate = predicate
 
   def predicate(self):
-    return _predicate
+    return self._predicate
 
 class RelationFormula(Formula):
   _arg1 = 1
@@ -27,7 +27,7 @@ class RelationFormula(Formula):
         amap.map(self.arg2()))
 
   def __str__(self):
-    return "(%s) %d %d" % (self.predicate(), self.arg1(), self.arg2())
+    return "(%s %d %d)" % (self.predicate(), self.arg1(), self.arg2())
 
 class PropertyFormula(Formula):
   _arg1 = 1
@@ -42,7 +42,7 @@ class PropertyFormula(Formula):
     return PropertyFormula(self.predicate(), amap.map(self.arg1()))
   
   def __str__(self):
-    return "(%s) %d " % (self.predicate(), self.arg1())
+    return "(%s %d)" % (self.predicate(), self.arg1())
 
 class FormulaSet:
   _formulas = []
@@ -50,15 +50,12 @@ class FormulaSet:
   def __init__(self, formulas=[]):
     self._formulas = formulas
 
-  def addFormula(self, formula):
-    if isinstance(formula,FormulaSet):
-      self.addFormulaSet(formula)
-    else :
-      self._formulas.append(formula)
-
-  def addFormulaSet(self, formulaset):
-    for formula in formulaset.formulas:
-      self.addFormula(formula)
+  def append(self, formulaOrFormulaSet):
+    if isinstance(formulaOrFormulaSet,FormulaSet):
+      for f in formulaOrFormulaSet.formulas():
+        self.append(f)
+    else:
+      self._formulas.append(formulaOrFormulaSet)
 
   def formulas(self):
     return self._formulas
@@ -72,7 +69,7 @@ class FormulaSet:
   def __str__(self):
     s = ""
     for formula in self.formulas():
-      s += formula
+      s += str(formula)
     return s
 
 class ArgumentMap:
