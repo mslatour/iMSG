@@ -9,4 +9,7 @@ class Parent(Human):
     Human.__init__(self)
 
   def communicate(self, meaning, child):
+    string = ""
+    for f in meaning.formulas():
+      string += self.lexicon[f]
     pass
