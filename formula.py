@@ -50,6 +50,9 @@ class RelationFormula(Formula):
   def __str__(self):
     return "(%s %d %d)" % (self.predicate(), self.arg1(), self.arg2())
 
+  def __repr__(self):
+    return self.__str__()
+
 class PropertyFormula(Formula):
   _arg1 = 1
   def __init__(self, predicate, arg1=1):
@@ -64,6 +67,9 @@ class PropertyFormula(Formula):
   
   def __str__(self):
     return "(%s %d)" % (self.predicate(), self.arg1())
+
+  def __repr__(self):
+    return self.__str__()
 
 class FormulaSet:
   _formulas = []
@@ -95,6 +101,9 @@ class FormulaSet:
       s += str(formula)
     return s
 
+  def __repr__(self):
+    return self.__str__()
+
 class ArgumentMap:
   _amap = {1:1,2:2}
 
@@ -107,15 +116,14 @@ class ArgumentMap:
 
   @staticmethod
   def find_mapping(a, b):
-    if a.predicate()!=b.predicate or\
-       a.__class__.__name__!=b.__class__.__name__:
-      return None
-    if isinstance(a, RelationFormula):
-      map[a.arg1()] = b.arg1()
-      map[a.arg2()] = b.arg2()
-      return ArgumentMap(map)
-    elif isinstance(a, PropertyFormula):
-      map[a.arg1()] = b.arg1()
-      return ArgumentMap(map)
+    map = {}
+    for f_a in a:
+      if f_a in b:
+        f_b = b[b.index(f_a)]
+        if isinstance(a, RelationFormula):
+          map[a.arg1()] = b.arg1()
+          map[a.arg2()] = b.arg2()
+        elif isinstance(a, PropertyFormula):
+          map[a.arg1()] = b.arg1()
 
-    return None
+    return map if len(map)>0 else None
