@@ -60,7 +60,8 @@ def initialize_forest(words, str_to_phr):
   return parseForest, costs
 
 def get_complex_phrases(for_to_phr, costs, x, y, span, meaning, top=False):
-  potential_phrases = set(for_to_phr[x]) | set(for_to_phr[y])
+  potential_phrases = set(for_to_phr.get(x, [])) | \
+                      set(for_to_phr.get(y, []))
   full_matches = []
   left_matches = []
   right_matches = []
@@ -83,13 +84,13 @@ def get_complex_phrases(for_to_phr, costs, x, y, span, meaning, top=False):
       right_matches.append(phrase)
 
   # if no phrase is found, then create a new one
-  x_in_meaning = x
-  y_in_meaning = y
-  for formula in meaning:
-    if x==formula:
-      x_in_meaning = formula
-    if y==formula:
-      y_in_meaning = formula
+  x_in_meaning = []
+  y_in_meaning = []
+  for formula in meaning.formulas():
+    if formula in x.formulaset():
+      x_in_meaning.append(formula)
+    elif formula in y.formulaset():
+      y_in_meaning.append(formula)
 
   if len(potential_phrases)==0:    
     cost = costs[x] + costs[y] + COST_MERGE

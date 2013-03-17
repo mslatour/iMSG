@@ -104,8 +104,8 @@ class PhraseNode:
     return self._formulaset
 
   def __str__(self):
-    return "(%s %s %s)" % (self.formulaset(), self.left(),
-                           self.right())
+    return "(%s %s %s)" % (str(self.formulaset()), str(self.left()),
+                           str(self.right()))
 
   def __repr__(self):
     return self.__str__()
@@ -126,7 +126,7 @@ class ExemplarNode(PhraseNode):
     return self._string
 
   def __str__(self):
-    return "(%s '%s')" % (self.formulaset(), self.string())
+    return "(%s '%s')" % (str(self.formulaset()), self.string())
 
   def __repr__(self):
     return self.__str__()
