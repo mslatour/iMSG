@@ -18,6 +18,18 @@ class PhraseNode:
   def __init__(self, cost=0):
     self._cost = cost
 
+  def __contains__(self, item):
+    if isinstance(item, Formula):
+      return item in self._formulaset
+    elif isinstance(item, str):
+      if self._left is not None:
+        if item in self._left:
+          return true
+      if self._right is not None:
+        if item in self._right:
+          return true
+      return false
+
   def isComplex(self):
     return self._type==0
 
@@ -81,6 +93,10 @@ class PhraseNode:
     phrase.addLeft(self.left(), self.leftArgumentMap())
     phrase.addRight(self.right(),amap)
     return phrase
+
+  def minimalChange(self, meaning, left, right):
+
+    pass
   
   def left(self):
     return self._left
@@ -118,6 +134,12 @@ class ExemplarNode(PhraseNode):
   def __init__(self, formulaset, cost=0):
     PhraseNode.__init__(self, cost)
     self._formulaset = formulaset
+  
+  def __contains__(self, item):
+    if isinstance(item, Formula):
+      return item in self._formulaset
+    elif isinstance(item, str):
+      return item == self._string
 
   def addString(self, string):
     self._string = string
