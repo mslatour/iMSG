@@ -79,6 +79,24 @@ class FormulaSet:
     for f in formulas:
       self.append(f)
 
+  def __getitem__(self,key):
+    return self._formulas[key]
+  
+  def __setitem__(self, key, value):
+    self._formulas[key] = value
+
+  def __iter__(self):
+    return self._formulas.__iter__()
+  
+  def __reversed__(self):
+    return self._formulas.__reversed__()
+
+  def __contains__(self, item):
+    return self._formulas.__contains__(item)
+
+  def __len__(self):
+    return len(self._formulas);
+
   def append(self, formulaOrFormulaSet):
     if isinstance(formulaOrFormulaSet,FormulaSet):
       for f in formulaOrFormulaSet.formulas():
