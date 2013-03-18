@@ -114,10 +114,7 @@ class FormulaSet:
     return formulaset
 
   def __str__(self):
-    s = ""
-    for formula in self.formulas():
-      s += str(formula)
-    return s
+    return str(self.formulas())
 
   def __repr__(self):
     return self.__str__()
