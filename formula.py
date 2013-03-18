@@ -128,14 +128,19 @@ class ArgumentMap:
   _amap = {1:1,2:2}
 
   def __init__(self, amap={}):
-    for arg in amap:
-      self._amap[arg] = amap[arg]
+    self._amap = amap
 
   def map(self, arg):
     return self._amap[arg]
 
+  def __str__(self):
+    return str(self._amap)
+
+  def __repr__(self):
+    return self.__str__()
+
   @staticmethod
-  def find_mapping(a, b):
+  def findMapping(a, b):
     if isinstance(a, phrase.PhraseNode):
       a = a.formulaset()
     if isinstance(b, phrase.PhraseNode):
@@ -144,10 +149,10 @@ class ArgumentMap:
     for f_a in a:
       if f_a in b:
         f_b = b[b.index(f_a)]
-        if isinstance(a, RelationFormula):
-          map[a.arg1()] = b.arg1()
-          map[a.arg2()] = b.arg2()
-        elif isinstance(a, PropertyFormula):
-          map[a.arg1()] = b.arg1()
+        if isinstance(f_b, RelationFormula):
+          map[f_a.arg1()] = f_b.arg1()
+          map[f_a.arg2()] = f_b.arg2()
+        elif isinstance(f_b, PropertyFormula):
+          map[f_a.arg1()] = f_b.arg1()
 
-    return map if len(map)>0 else None
+    return ArgumentMap(map) if len(map)>0 else None

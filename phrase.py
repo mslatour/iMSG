@@ -17,8 +17,8 @@ class PhraseNode:
 
   @staticmethod
   def mergeNodes(left, right, meaning):
-    left_map = ArgumentMap.find_mapping(left, meaning)
-    right_map = ArgumentMap.find_mapping(right, meaning)
+    left_map = ArgumentMap.findMapping(left, meaning)
+    right_map = ArgumentMap.findMapping(right, meaning)
     cost = left.cost() + right.cost() + COST_MERGE
     pn = PhraseNode(cost)
     pn.addLeft(left, left_map)
