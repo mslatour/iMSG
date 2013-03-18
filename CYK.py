@@ -16,15 +16,6 @@ from formula import *
 
 
 def makeForest(words, meaning, str_to_phr, for_to_phr):
-  """TODO write new docstring
-  Creates parse forest: all possible (sub)trees with probabilities
-  for a sentence given a str_to_phr.
-  Arguments:
-  string    - contains words separated by single whitespace
-  str_to_phr   - dictionary mapping rhs to [(P(rule_1), lhs_1), ..., (P(rule_n), lhs_n)]
-  Return:
-  parseForest - dictionary mapping span [i,j) to dictionary mapping parent to (left-child, right-child, k)
-  costs     - dictionary mapping (node, i, j) to P(node)"""
   # initialize
   parseForest, costs = initialize_forest(words, str_to_phr)
 
@@ -49,9 +40,8 @@ def makeForest(words, meaning, str_to_phr, for_to_phr):
 
 def initialize_forest(words, str_to_phr):
   parseForest = {} # condenses all possible parse tree
-  costs = {} # holds probability of each entry in 'parseForest'
-  for i in xrange(len(words)): # set terminals in triangle table
-    word = words[i]
+  costs = {} # holds cost of each entry in 'parseForest'
+  for i, word in enumerate(words): # set terminals in triangle table
     exemplars = (f for f in str_to_phr.get(word,[]) if f.span()==1)
     for exemplar in exemplars: 
       parseForest.setdefault((i,i+1), {})[exemplar] = (word, None, i+1) 
@@ -60,73 +50,32 @@ def initialize_forest(words, str_to_phr):
   return parseForest, costs
 
 def get_complex_phrases(for_to_phr, costs, x, y, span, meaning, top=False):
-  potential_phrases = set(for_to_phr.get(x, [])) | \
-                      set(for_to_phr.get(y, []))
-  full_matches = []
-  left_matches = []
-  right_matches = []
+  x_phrases = []
+  for formula in x.formulaset():
+    temp_phrases = [phrase for phrase in for_to_phr.get(formula,[])
+                    if phrase.span()==span]
+    x_phrases.extend(temp_phrases)
 
-  for phrase in potential_phrases:
-    left_formulaset = phrase.left().formulaset()
-    right_formulaset = phrase.right().formulaset()
-    if phrase.span!=span or \
-       (left_formulaset!=x.formulaset() and\
-        right_formulaset!=y.formulaset()):
-      continue
+  y_phrases = []
+  for formula in y.formulaset():
+    temp_phrases = [phrase for phrase in for_to_phr.get(formula,[])
+                    if phrase.span()==span]
+    y_phrases.extend(temp_phrases)
 
-    if left_formulaset==x.formulaset() and\
-       right_formulaset==y.formulaset():
-      full_matches.append(phrase)
-    elif left_formulaset==x.formulaset() and\
-         right_formulaset!=y.formulaset():
-      left_matches.append(phrase)
-    else:
-      right_matches.append(phrase)
-
-  # if no phrase is found, then create a new one
-  x_in_meaning = []
-  y_in_meaning = []
-  for formula in meaning.formulas():
-    if formula in x.formulaset():
-      x_in_meaning.append(formula)
-    elif formula in y.formulaset():
-      y_in_meaning.append(formula)
-
-  if len(potential_phrases)==0:    
-    cost = costs[x] + costs[y] + COST_MERGE
-    phrase = PhraseNode(cost)
-    x_map = ArgumentMap.find_mapping(x, x_in_meaning)
-    y_map = ArgumentMap.find_mapping(y, y_in_meaning)
-    phrase.addLeft(x_in_meaning, x_map)
-    phrase.addRight(y_in_meaning, y_map)
-    return [phrase]
-
-  # create all complex phrases
+  potential_phrases = set(x_phrases) | set(y_phrases)
   complex_phrases = []
-  for phrase in full_matches[:]:
-    x_map = ArgumentMap.find_mapping(x, phrase)
-    y_map = ArgumentMap.find_mapping(y, phrase)
-    phrase = phrase.addLeft(x, x_map)
-    phrase = phrase.addRight(y, y_map)
-    complex_phrases.append(phrase)
+  for phrase in potential_phrases:
+    temp_phrase = phrase.minimalChange(meaning, x, y)
+    if temp_phrase:
+      complex_phrase.append(temp_phrase)
 
-  for phrase in left_matches[:]:
-    x_map = ArgumentMap.find_mapping(x, phrase)
-    phrase = phrase.addLeft(x, x_map)
-    phrase = phrase.addRight(y)
-    complex_phrases.append(phrase)
-
-  for phrase in right_matches[:]:
-    y_map = ArgumentMap.find_mapping(y, phrase)
-    phrase = phrase.addLeft(x)
-    phrase = phrase.addRight(y, y_map)
-    complex_phrases.append(phrase)
+  complex_phrases.append(PhraseNode.mergeNodes(x, y, meaning))
 
   return complex_phrases
 
 if __name__=='__main__':
   import observations
-  obs = observations.observations
+  observations = observations.observations
   
   snake_f = PropertyFormula('snake')
   bit_f = RelationFormula('bit')
@@ -148,12 +97,17 @@ if __name__=='__main__':
                 'bit': [bit_e],
                 'pig': [pig_e]}
 
-  print str_to_phr
   for_to_phr = {}
-  print obs[0]
-  parseForest, costs = makeForest(obs[0][0], obs[0][1],\
-                       str_to_phr, for_to_phr)
-  print 'parseforest:'
-  print parseForest
-  print 'costs:'
-  print costs
+  for obs in observations:
+    words = obs[0]
+    meaning = obs[1]
+    print 'words: %s' % (words,)
+    print 'meaning: %s' % meaning
+    parseForest, costs = makeForest(words, meaning,\
+                         str_to_phr, for_to_phr)
+    parse = list(parseForest[(0,len(words))])[0]
+    print 'parse: %s' % parse
+    print 'costs: %s' % parse.cost()
+    print ''
+    parse.draw()
+

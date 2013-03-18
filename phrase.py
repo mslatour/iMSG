@@ -15,6 +15,16 @@ class PhraseNode:
   _cost = 0
   _span = 1
 
+  @staticmethod
+  def mergeNodes(left, right, meaning):
+    left_map = ArgumentMap.find_mapping(left, meaning)
+    right_map = ArgumentMap.find_mapping(right, meaning)
+    cost = left.cost() + right.cost() + COST_MERGE
+    pn = PhraseNode(cost)
+    pn.addLeft(left, left_map)
+    pn.addRight(right, right_map)
+    return pn
+
   def __init__(self, cost=0):
     self._cost = cost
 
@@ -125,6 +135,28 @@ class PhraseNode:
 
   def __repr__(self):
     return self.__str__()
+
+  def draw(self):
+    try:
+      from nltk import Tree
+    except:
+      print "This option requires the installation of nltk:"
+      print "http://nltk.org/"
+      return
+
+    tree = self.getTree()
+    tree.draw()
+
+  def getTree(self):
+    try:
+      from nltk import Tree
+    except:
+      print "This option requires the installation of nltk:"
+      print "http://nltk.org/"
+      return
+
+    return Tree(str(self.formulaset()), 
+           [self.left().getTree(), self.right().getTree()])
   
 class ExemplarNode(PhraseNode):
   _type = 1
@@ -148,7 +180,17 @@ class ExemplarNode(PhraseNode):
     return self._string
 
   def __str__(self):
-    return "(%s '%s')" % (str(self.formulaset()), self.string())
+    return "(%s %s)" % (str(self.formulaset()), self.string())
 
   def __repr__(self):
     return self.__str__()
+
+  def getTree(self):
+    try:
+      from nltk import Tree
+    except:
+      print "This option requires the installation of nltk:"
+      print "http://nltk.org/"
+      return
+
+    return Tree(str(self.formulaset()), [self.string()])

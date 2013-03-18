@@ -1,3 +1,5 @@
+import phrase
+
 class Formula:
   _predicate = None
 
@@ -95,7 +97,10 @@ class FormulaSet:
     return self._formulas.__contains__(item)
 
   def __len__(self):
-    return len(self._formulas);
+    return len(self._formulas)
+
+  def index(self, item):
+    return self._formulas.index(item)
 
   def append(self, formulaOrFormulaSet):
     if isinstance(formulaOrFormulaSet,FormulaSet):
@@ -131,6 +136,10 @@ class ArgumentMap:
 
   @staticmethod
   def find_mapping(a, b):
+    if isinstance(a, phrase.PhraseNode):
+      a = a.formulaset()
+    if isinstance(b, phrase.PhraseNode):
+      b = b.formulaset()
     map = {}
     for f_a in a:
       if f_a in b:
