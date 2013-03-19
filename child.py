@@ -15,8 +15,9 @@ class Child(Human):
     phrase = parse(words, meaning,
              self.str_to_phr, self.for_to_phr)
     self.add_subphrases(phrase)
+    phrase.draw()
     for key, value in self.for_to_phr.iteritems():
-      print '%s -> %s' % (key, value)
+      print '%s -> %s' % (key, list(value))
     print ''
 
   def add_subphrases(self, phrase):

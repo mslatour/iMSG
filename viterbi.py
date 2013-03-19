@@ -82,6 +82,9 @@ def get_complex_phrases(for_to_phr, costs, x, y, span, meaning, top=False):
     if temp_phrase:
       complex_phrases.append(temp_phrase)
 
+  print 'x: %s' % x
+  print 'y: %s' % y
+  print 'meaning: %s' % meaning
   complex_phrases.append(PhraseNode.merge(x, y, meaning))
 
   return complex_phrases
