@@ -8,7 +8,7 @@ class Child(Human):
   def __init__(self):
     Human.__init__(self)
   
-  def observe(self, meaning):
+  def observe(self, (words, meaning)):
     pass
 
   def grow_up(self):
