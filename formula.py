@@ -45,7 +45,7 @@ class RelationFormula(Formula):
   def arg2(self):
     return self._arg2
 
-  def applyArgumentMap(self, amap):
+  def apply_argument_map(self, amap):
     return RelationFormula(self.predicate(), amap.map(self.arg1()),\
         amap.map(self.arg2()))
 
@@ -64,7 +64,7 @@ class PropertyFormula(Formula):
   def arg1(self):
     return self._arg1
 
-  def applyArgumentMap(self, amap):
+  def apply_argument_map(self, amap):
     return PropertyFormula(self.predicate(), amap.map(self.arg1()))
   
   def __str__(self):
@@ -102,20 +102,20 @@ class FormulaSet:
   def index(self, item):
     return self._formulas.index(item)
 
-  def append(self, formulaOrFormulaSet):
-    if isinstance(formulaOrFormulaSet,FormulaSet):
-      for f in formulaOrFormulaSet.formulas():
+  def append(self, formula_or_formulaset):
+    if isinstance(formula_or_formulaset,FormulaSet):
+      for f in formula_or_formulaset.formulas():
         self.append(f)
     else:
-      self._formulas.append(formulaOrFormulaSet)
+      self._formulas.append(formula_or_formulaset)
 
   def formulas(self):
     return self._formulas
 
-  def applyArgumentMap(self, amap):
+  def apply_argument_map(self, amap):
     formulaset = FormulaSet()
     for formula in self.formulas():
-      formulaset.append(formula.applyArgumentMap(amap))
+      formulaset.append(formula.apply_argument_map(amap))
     return formulaset
 
   def __str__(self):
@@ -140,7 +140,7 @@ class ArgumentMap:
     return self.__str__()
 
   @staticmethod
-  def findMapping(a, b):
+  def find_mapping(a, b):
     if isinstance(a, phrase.PhraseNode):
       a = a.formulaset()
     if isinstance(b, phrase.PhraseNode):
