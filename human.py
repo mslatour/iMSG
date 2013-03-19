@@ -25,7 +25,7 @@ class Human:
       for m in meaning:
         s += self.verbalize(m)
       return s
-    except TypeError te:
+    except TypeError:
       return ""
 
   def get_last_cost(self):

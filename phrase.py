@@ -8,21 +8,21 @@ COST_NEW = 4
 class PhraseNode:
   _type = 0
   _left = None
-  _leftAmap = None
+  _left_amap = None
   _right = None
-  _rightAmap = None
+  _right_amap = None
   _formulaset = None
   _cost = 0
   _span = 1
 
   @staticmethod
-  def mergeNodes(left, right, meaning):
-    left_map = ArgumentMap.findMapping(left, meaning)
-    right_map = ArgumentMap.findMapping(right, meaning)
+  def merge(left, right, meaning):
+    left_map = ArgumentMap.find_mapping(left, meaning)
+    right_map = ArgumentMap.find_mapping(right, meaning)
     cost = left.cost() + right.cost() + COST_MERGE
     pn = PhraseNode(cost)
-    pn.addLeft(left, left_map)
-    pn.addRight(right, right_map)
+    pn.add_left(left, left_map)
+    pn.add_right(right, right_map)
     return pn
 
   def __init__(self, cost=0):
@@ -40,7 +40,7 @@ class PhraseNode:
           return true
       return false
 
-  def isComplex(self):
+  def is_complex(self):
     return self._type==0
 
   def cost(self):
@@ -49,82 +49,84 @@ class PhraseNode:
   def span(self):
     return self._span
 
-  def updateSpan(self):
+  def update_span(self):
     self._span = 0
     if self._left is not None:
       self._span += self._left.span()
     if self._right is not None:
       self._span += self._right.span()
 
-  def updateFormulaSet(self):
+  def update_formula_set(self):
     fs = FormulaSet()
     if self._left is not None:
       l = self._left.formulaset()
-      if self._leftAmap is not None:
-        fs.append(l.applyArgumentMap(self._leftAmap))
+      if self._left_amap is not None:
+        fs.append(l.apply_argument_map(self._left_amap))
       else:
         fs.append(l)
     if self._right is not None:
       r = self._right.formulaset()
-      if self._rightAmap is not None:
-        fs.append(r.applyArgumentMap(self._rightAmap))
+      if self._right_amap is not None:
+        fs.append(r.apply_argument_map(self._right_amap))
       else:
         fs.append(r)
     self._formulaset = fs
 
-  def addLeft(self, left, amap=None):
+  def add_left(self, left, amap=None):
     self._left = left
-    self._leftAmap = amap
-    self.updateSpan()
-    self.updateFormulaSet()
+    self._left_amap = amap
+    self.update_span()
+    self.update_formula_set()
 
-  def changeLeft(self,left, amap=None):
+  def change_left(self,left, amap=None):
     phrase = PhraseNode(self.cost()+left.cost()+COST_SUBSTITUTION)
     if amap is None:
-      amap = self._leftAmap
-    phrase.addLeft(left, amap)
-    phrase.addRight(self.right(),self._rightAmap)
+      amap = self._left_amap
+    phrase.add_left(left, amap)
+    phrase.add_right(self.right(),self._right_amap)
 
-  def changeLeftArgumentMap(self, amap):
+  def change_left_argument_map(self, amap):
     phrase = PhraseNode(self.cost()+COST_AMAP)
-    phrase.addLeft(self.left(), amap)
-    phrase.addRight(self.right(),self.rightArgumentMap())
+    phrase.add_left(self.left(), amap)
+    phrase.add_right(self.right(),self.right_argument_map())
     return phrase
   
-  def changeRight(self, right, amap=None):
+  def change_right(self, right, amap=None):
     phrase = PhraseNode(self.cost()+right.cost()+COST_SUBSTITUTION)
     if amap is None:
-      amap = self._rightAmap
-    phrase.addLeft(self.left(),self._leftAmap)
-    phrase.addRight(right, amap)
+      amap = self._right_amap
+    phrase.add_left(self.left(),self._left_amap)
+    phrase.add_right(right, amap)
   
-  def changeRightArgumentMap(self, amap):
+  def change_right_argument_map(self, amap):
     phrase = PhraseNode(self.cost()+COST_AMAP)
-    phrase.addLeft(self.left(), self.leftArgumentMap())
-    phrase.addRight(self.right(),amap)
+    phrase.add_left(self.left(), self.left_argument_map())
+    phrase.add_right(self.right(),amap)
     return phrase
 
-  def minimalChange(self, meaning, left, right):
-
-    pass
+  def minimal_change(self, meaning, left, right):
+    if len(set(self.formulaset())&set(meaning)) == len(meaning):
+      return self
+    else:
+      return None
   
   def left(self):
     return self._left
   
-  def leftArgumentMap(self):
-    return self._leftAmap
+  def left_argument_map(self):
+    return self._left_amap
   
-  def addRight(self, right, amap=None):
+  def add_right(self, right, amap=None):
     self._right = right
-    self._rightAmap = amap
-    self.updateSpan()
-    self.updateFormulaSet()
+    self._right_amap = amap
+    self.update_span()
+    self.update_formula_set()
   
   def right(self):
     return self._right
 
-  def rightArgumentMap(self):
-    return self._rightAmap
+  def right_argument_map(self):
+    return self._right_amap
   
   def formulaset(self):
     return self._formulaset
@@ -144,10 +146,10 @@ class PhraseNode:
       print "http://nltk.org/"
       return
 
-    tree = self.getTree()
+    tree = self.get_tree()
     tree.draw()
 
-  def getTree(self):
+  def get_tree(self):
     try:
       from nltk import Tree
     except:
@@ -156,7 +158,7 @@ class PhraseNode:
       return
 
     return Tree(str(self.formulaset()), 
-           [self.left().getTree(), self.right().getTree()])
+           [self.left().get_tree(), self.right().get_tree()])
   
 class ExemplarNode(PhraseNode):
   _type = 1
@@ -173,7 +175,7 @@ class ExemplarNode(PhraseNode):
     elif isinstance(item, str):
       return item == self._string
 
-  def addString(self, string):
+  def add_string(self, string):
     self._string = string
 
   def string(self):
@@ -185,7 +187,7 @@ class ExemplarNode(PhraseNode):
   def __repr__(self):
     return self.__str__()
 
-  def getTree(self):
+  def get_tree(self):
     try:
       from nltk import Tree
     except:
