@@ -7,6 +7,9 @@ class Formula:
   def predicate(self):
     return self._predicate
 
+  def primitive(self):
+    return Formula(self.predicate())
+
   def __eq__(self, other):
     return other.predicate() == self.predicate()
 
@@ -60,7 +63,8 @@ class RelationFormula(Formula):
     return self.__str__()
   
   def __eq__(self, other):
-    return other.predicate() == self.predicate() and \
+    return isinstance(other, RelationFormula) and \
+        other.predicate() == self.predicate() and \
         other.arg1() == self.arg1() and \
         other.arg2() == self.arg2()
   
@@ -87,9 +91,10 @@ class PropertyFormula(Formula):
     return self.__str__()
   
   def __eq__(self, other):
-    return other.predicate() == self.predicate() and \
+    return isinstance(other, PredicateFormula) and \
+        other.predicate() == self.predicate() and \
         other.arg1() == self.arg1()
-  
+
   def __hash__(self):
     return int("".join([str(ord(c)-32) for c in self.predicate()]+ \
         [str(self.arg1())]))
@@ -159,7 +164,7 @@ class FormulaSet:
   def primitive(self):
     fs = FormulaSet()
     for f in self:
-      fs.append(Formula(f.predicate()))
+      fs.append(f.primitive())
     return fs
 
   def formulas(self):
