@@ -40,6 +40,28 @@ class PhraseNode:
           return true
       return false
 
+  def __eq__(self, other):
+    return self.meaning() == other.meaning() and \
+        self.left_argument_map() == other.left_argument_map() and \
+        self.right_argument_map() == other.right_argument_map() and \
+        self.left() == other.left() and \
+        self.right() == other.right()
+
+  def __lt__(self, other):
+    return NotImplemented
+
+  def __le__(self, other):
+    return NotImplemented
+
+  def __ne__(self, other):
+    return not self.__eq__(other)
+
+  def __gt__(self, other):
+    return NotImplemented
+
+  def __ge__(self, other):
+    return NotImplemented
+
   def is_complex(self):
     return self._type==0
 
@@ -78,10 +100,8 @@ class PhraseNode:
     self.update_span()
     self.update_formula_set()
 
-  def change_left(self,left, amap=None):
+  def change_left(self,left, amap):
     phrase = PhraseNode(self.cost()+left.cost()+COST_SUBSTITUTION)
-    if amap is None:
-      amap = self._left_amap
     phrase.add_left(left, amap)
     phrase.add_right(self.right(),self._right_amap)
 
@@ -91,10 +111,8 @@ class PhraseNode:
     phrase.add_right(self.right(),self.right_argument_map())
     return phrase
   
-  def change_right(self, right, amap=None):
+  def change_right(self, right, amap):
     phrase = PhraseNode(self.cost()+right.cost()+COST_SUBSTITUTION)
-    if amap is None:
-      amap = self._right_amap
     phrase.add_left(self.left(),self._left_amap)
     phrase.add_right(right, amap)
   
@@ -105,12 +123,46 @@ class PhraseNode:
     return phrase
 
   def minimal_change(self, meaning, left, right):
-    if self.meaning() == meaning:
-      return self
-    if self.left().meaning().primitive() != left.meaning().primitive():
-      return self
+    meaning_l = meaning[0:len(left.meaning())]
+    meaning_r = meaning[len(left.meaning()):]
+    self_meaning_l = self.meaning()[0:len(left.meaning())]
+    self_meaning_r = self.meaning()[len(left.meaning()):]
+
+    # if left is already completely fine
+    if self.left() == left and self.meaning_l == meaning_l:
+      # if right is already completely fine
+      if self.right() == right and self_meaning_r == meaning_r:
+        return self
+      # if right only needs a new argument mapping
+      elif self.right() == right:
+        return self.change_right_argument_map(ArgumentMap.find_mapping(right.meaning(), meaning_r))
+      # if right needs to be replaced
+      else:
+        return self.change_right(right, ArgumentMap.find_mapping(right.meaning(), meaning_r))
+    # if left only needs a new argument mapping
+    elif self.left() == left:
+      phrase = self.change_left_argument_map(ArgumentMap.find_mapping(left.meaning(), meaning_l))
+      # if right is already completely fine
+      if self.right() == right and self_meaning_r == meaning_r:
+        return phrase
+      # if right only needs a new argument mapping
+      elif self.right() == right:
+        return phrase.change_right_argument_map(ArgumentMap.find_mapping(right.meaning(), meaning_r))
+      # if right needs to be replaced
+      else:
+        return phrase.change_right(right, ArgumentMap.find_mapping(right.meaning(), meaning_r))
+    # if left needs to be replaced
     else:
-      return None
+      phrase = self.change_left(left, ArgumentMap.find_mapping(left.meaning(), meaning_l))
+      # if right is already completely fine
+      if self.right() == right and self_meaning_r == meaning_r:
+        return phrase
+      # if right only needs a new argument mapping
+      elif self.right() == right:
+        return phrase.change_right_argument_map(ArgumentMap.find_mapping(right.meaning(), meaning_r))
+      # if right needs to be replaced
+      else:
+        return phrase.change_right(right, ArgumentMap.find_mapping(right.meaning(), meaning_r))
   
   def left(self):
     return self._left
