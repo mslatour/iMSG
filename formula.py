@@ -17,7 +17,7 @@ class Formula:
     return NotImplemented
 
   def __ne__(self, other):
-    return other.predicate() != self.predicate()
+    return not self.__eq__(other)
 
   def __gt__(self, other):
     return NotImplemented
@@ -52,6 +52,15 @@ class RelationFormula(Formula):
 
   def __repr__(self):
     return self.__str__()
+  
+  def __eq__(self, other):
+    return other.predicate() == self.predicate() and \
+        other.arg1() == self.arg1() and \
+        other.arg2() == self.arg2()
+  
+  def __hash__(self):
+    return int("".join([str(ord(c)-32) for c in self.predicate()]+ \
+        [str(self.arg1()), str(self.arg2())]))
 
 class PropertyFormula(Formula):
   _arg1 = 1
@@ -70,6 +79,14 @@ class PropertyFormula(Formula):
 
   def __repr__(self):
     return self.__str__()
+  
+  def __eq__(self, other):
+    return other.predicate() == self.predicate() and \
+        other.arg1() == self.arg1()
+  
+  def __hash__(self):
+    return int("".join([str(ord(c)-32) for c in self.predicate()]+ \
+        [str(self.arg1())]))
 
 class FormulaSet:
   _formulas = []
@@ -89,7 +106,7 @@ class FormulaSet:
     return NotImplemented
 
   def __ne__(self, other):
-    return len(set(self)&set(other)) != len(other)
+    return not self.__eq__(other)
 
   def __gt__(self, other):
     return NotImplemented
