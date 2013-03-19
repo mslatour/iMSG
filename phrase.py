@@ -17,8 +17,8 @@ class PhraseNode:
 
   @staticmethod
   def merge(left, right, meaning):
-    left_map = ArgumentMap.find_mapping(left, meaning)
-    right_map = ArgumentMap.find_mapping(right, meaning)
+    left_map = ArgumentMap.find_mapping(left.meaning(), meaning)
+    right_map = ArgumentMap.find_mapping(right.meaning(), meaning)
     cost = left.cost() + right.cost() + COST_MERGE
     pn = PhraseNode(cost)
     pn.add_left(left, left_map)
@@ -133,6 +133,11 @@ class PhraseNode:
   def meaning(self):
     return self._meaning
 
+  def leaves(self):
+    left_leaves = self.left().leaves()
+    right_leaves = self.right().leaves()
+    return left_leaves + right_leaves
+
   def __str__(self):
     return "(%s [%s %s])" % (str(self.meaning()), str(self.left()),
                            str(self.right()))
@@ -182,6 +187,9 @@ class ExemplarNode(PhraseNode):
 
   def string(self):
     return self._string
+
+  def leaves(self):
+    return [self.string()]
 
   def __str__(self):
     return "(%s %s)" % (str(self.meaning()), self.string())

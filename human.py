@@ -10,6 +10,8 @@ class Human:
 
   def __init__(self):
     self.cost = 0
+    self.str_to_phr = {}
+    self.for_to_phr = {}
 
   def lexicon(self):
     return self._lexicon
