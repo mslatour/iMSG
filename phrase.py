@@ -25,7 +25,7 @@ class PhraseNode:
     pn.add_right(right, right_map)
     return pn
 
-  def __init__(self, cost=0):
+  def __init__(self, cost):
     self._cost = cost
 
   def __contains__(self, item):
@@ -218,7 +218,7 @@ class PhraseNode:
       print "http://nltk.org/"
       return
 
-    return Tree(str(self.meaning()), 
+    return Tree('%s-%s'%(self.meaning(), self.cost()), 
            [self.left().get_tree(), self.right().get_tree()])
   
 class ExemplarNode(PhraseNode):
@@ -226,10 +226,10 @@ class ExemplarNode(PhraseNode):
 
   _string = None
   
-  def __init__(self, meaning, cost=0):
-    PhraseNode.__init__(self, cost)
+  def __init__(self, meaning):
+    PhraseNode.__init__(self, COST_NEW)
     self._meaning = meaning
-  
+
   def __contains__(self, item):
     if isinstance(item, Formula):
       return item in self._meaning
@@ -263,4 +263,4 @@ class ExemplarNode(PhraseNode):
       print "http://nltk.org/"
       return
 
-    return Tree(str(self.meaning()), [self.string()])
+    return Tree('%s-%s'%(self.meaning(), self.cost()), [self.string()])
