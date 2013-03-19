@@ -91,7 +91,7 @@ class PropertyFormula(Formula):
     return self.__str__()
   
   def __eq__(self, other):
-    return isinstance(other, PredicateFormula) and \
+    return isinstance(other, PropertyFormula) and \
         other.predicate() == self.predicate() and \
         other.arg1() == self.arg1()
 
@@ -186,7 +186,9 @@ class ArgumentMap:
   _amap = {1:1,2:2}
 
   def __init__(self, amap={}):
-    self._amap = amap
+    self._amap = {1:1,2:2}
+    for arg in amap:
+      self._amap[arg] = amap[arg]
 
   def map(self, arg):
     return self._amap[arg]
@@ -201,8 +203,8 @@ class ArgumentMap:
   def find_mapping(a, b):
     amap = {}
     for f_a in a:
-      if f_a in b:
-        f_b = b[b.index(f_a)]
+      if f_a.primitive() in b.primitive():
+        f_b = b[b.primitive().index(f_a)]
         if isinstance(f_b, RelationFormula):
           amap[f_a.arg1()] = f_b.arg1()
           amap[f_a.arg2()] = f_b.arg2()
