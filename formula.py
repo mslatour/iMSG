@@ -96,6 +96,14 @@ class FormulaSet:
     for f in formulas:
       self.append(f)
 
+  def __add__(self, other):
+    if isinstance(other, FormulaSet):
+      return self._formulas.__add__(other.formulas())
+    elif isinstance(other, list):
+      return self._formulas.__add__(other)
+    else:
+      return NotImplemented
+
   def __eq__(self, other):
     return len(set(self)&set(other)) == len(other)
   
@@ -174,14 +182,14 @@ class ArgumentMap:
 
   @staticmethod
   def find_mapping(a, b):
-    map = {}
+    amap = {}
     for f_a in a:
       if f_a in b:
         f_b = b[b.index(f_a)]
         if isinstance(f_b, RelationFormula):
-          map[f_a.arg1()] = f_b.arg1()
-          map[f_a.arg2()] = f_b.arg2()
+          amap[f_a.arg1()] = f_b.arg1()
+          amap[f_a.arg2()] = f_b.arg2()
         elif isinstance(f_b, PropertyFormula):
-          map[f_a.arg1()] = f_b.arg1()
+          amap[f_a.arg1()] = f_b.arg1()
 
-    return ArgumentMap(map) if len(map)>0 else None
+    return ArgumentMap(amap) if len(amap)>0 else None
