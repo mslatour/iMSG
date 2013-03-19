@@ -134,7 +134,10 @@ class FormulaSet:
     return NotImplemented
 
   def __getitem__(self,key):
-    return self._formulas[key]
+    if isinstance(key, slice):
+      return FormulaSet(self._formulas[key])
+    else:
+      return self._formulas[key]
   
   def __setitem__(self, key, value):
     self._formulas[key] = value

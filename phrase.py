@@ -104,6 +104,7 @@ class PhraseNode:
     phrase = PhraseNode(self.cost()+left.cost()+COST_SUBSTITUTION)
     phrase.add_left(left, amap)
     phrase.add_right(self.right(),self._right_amap)
+    return phrase
 
   def change_left_argument_map(self, amap):
     phrase = PhraseNode(self.cost()+COST_AMAP)
@@ -115,6 +116,7 @@ class PhraseNode:
     phrase = PhraseNode(self.cost()+right.cost()+COST_SUBSTITUTION)
     phrase.add_left(self.left(),self._left_amap)
     phrase.add_right(right, amap)
+    return phrase
   
   def change_right_argument_map(self, amap):
     phrase = PhraseNode(self.cost()+COST_AMAP)
@@ -129,7 +131,7 @@ class PhraseNode:
     self_meaning_r = self.meaning()[len(left.meaning()):]
 
     # if left is already completely fine
-    if self.left() == left and self.meaning_l == meaning_l:
+    if self.left() == left and self_meaning_l == meaning_l:
       # if right is already completely fine
       if self.right() == right and self_meaning_r == meaning_r:
         return self
@@ -224,9 +226,9 @@ class ExemplarNode(PhraseNode):
 
   _string = None
   
-  def __init__(self, formulaset, cost=0):
+  def __init__(self, meaning, cost=0):
     PhraseNode.__init__(self, cost)
-    self._meaning = formulaset
+    self._meaning = meaning
   
   def __contains__(self, item):
     if isinstance(item, Formula):
@@ -242,6 +244,10 @@ class ExemplarNode(PhraseNode):
 
   def leaves(self):
     return [self.string()]
+  
+  def __eq__(self, other):
+    return self.meaning() == other.meaning() and \
+        self.string() == other.string()
 
   def __str__(self):
     return "(%s %s)" % (str(self.meaning()), self.string())
