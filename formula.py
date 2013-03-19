@@ -28,6 +28,12 @@ class Formula:
   def __hash__(self):
     return int("".join([str(ord(c)) for c in self.predicate()]))
 
+  def __str__(self):
+    return "(%s)" % (self.predicate(),)
+  
+  def __repr__(self):
+    return self.__str__()
+
 class RelationFormula(Formula):
   _arg1 = 1
   _arg2 = 2
@@ -98,9 +104,9 @@ class FormulaSet:
 
   def __add__(self, other):
     if isinstance(other, FormulaSet):
-      return self._formulas.__add__(other.formulas())
+      return FormulaSet(self._formulas.__add__(other.formulas()))
     elif isinstance(other, list):
-      return self._formulas.__add__(other)
+      return FormulaSet(self._formulas.__add__(other))
     else:
       return NotImplemented
 
@@ -149,6 +155,12 @@ class FormulaSet:
         self.append(f)
     else:
       self._formulas.append(item)
+
+  def primitive(self):
+    fs = FormulaSet()
+    for f in self:
+      fs.append(Formula(f.predicate()))
+    return fs
 
   def formulas(self):
     return self._formulas

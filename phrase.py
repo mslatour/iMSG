@@ -107,6 +107,8 @@ class PhraseNode:
   def minimal_change(self, meaning, left, right):
     if self.meaning() == meaning:
       return self
+    if self.left().meaning().primitive() != left.meaning().primitive():
+      return self
     else:
       return None
   
