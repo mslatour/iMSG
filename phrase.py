@@ -11,7 +11,7 @@ class PhraseNode:
   _left_amap = None
   _right = None
   _right_amap = None
-  _formulaset = None
+  _meaning = None
   _cost = 0
   _span = 1
 
@@ -30,7 +30,7 @@ class PhraseNode:
 
   def __contains__(self, item):
     if isinstance(item, Formula):
-      return item in self._formulaset
+      return item in self._meaning
     elif isinstance(item, str):
       if self._left is not None:
         if item in self._left:
@@ -59,18 +59,18 @@ class PhraseNode:
   def update_formula_set(self):
     fs = FormulaSet()
     if self._left is not None:
-      l = self._left.formulaset()
+      l = self._left.meaning()
       if self._left_amap is not None:
         fs.append(l.apply_argument_map(self._left_amap))
       else:
         fs.append(l)
     if self._right is not None:
-      r = self._right.formulaset()
+      r = self._right.meaning()
       if self._right_amap is not None:
         fs.append(r.apply_argument_map(self._right_amap))
       else:
         fs.append(r)
-    self._formulaset = fs
+    self._meaning = fs
 
   def add_left(self, left, amap=None):
     self._left = left
@@ -105,7 +105,7 @@ class PhraseNode:
     return phrase
 
   def minimal_change(self, meaning, left, right):
-    if len(set(self.formulaset())&set(meaning)) == len(meaning):
+    if len(set(self.meaning())&set(meaning)) == len(meaning):
       return self
     else:
       return None
@@ -128,11 +128,11 @@ class PhraseNode:
   def right_argument_map(self):
     return self._right_amap
   
-  def formulaset(self):
-    return self._formulaset
+  def meaning(self):
+    return self._meaning
 
   def __str__(self):
-    return "(%s %s %s)" % (str(self.formulaset()), str(self.left()),
+    return "(%s [%s %s])" % (str(self.meaning()), str(self.left()),
                            str(self.right()))
 
   def __repr__(self):
@@ -157,7 +157,7 @@ class PhraseNode:
       print "http://nltk.org/"
       return
 
-    return Tree(str(self.formulaset()), 
+    return Tree(str(self.meaning()), 
            [self.left().get_tree(), self.right().get_tree()])
   
 class ExemplarNode(PhraseNode):
@@ -167,11 +167,11 @@ class ExemplarNode(PhraseNode):
   
   def __init__(self, formulaset, cost=0):
     PhraseNode.__init__(self, cost)
-    self._formulaset = formulaset
+    self._meaning = formulaset
   
   def __contains__(self, item):
     if isinstance(item, Formula):
-      return item in self._formulaset
+      return item in self._meaning
     elif isinstance(item, str):
       return item == self._string
 
@@ -182,7 +182,7 @@ class ExemplarNode(PhraseNode):
     return self._string
 
   def __str__(self):
-    return "(%s %s)" % (str(self.formulaset()), self.string())
+    return "(%s %s)" % (str(self.meaning()), self.string())
 
   def __repr__(self):
     return self.__str__()
@@ -195,4 +195,4 @@ class ExemplarNode(PhraseNode):
       print "http://nltk.org/"
       return
 
-    return Tree(str(self.formulaset()), [self.string()])
+    return Tree(str(self.meaning()), [self.string()])
