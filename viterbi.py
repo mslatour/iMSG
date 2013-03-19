@@ -14,10 +14,14 @@ import re
 from phrase import *
 from formula import *
 
+def parse(words, meaning, str_to_phr, for_to_phr):
+  parse_forest, _ = make_forest(words, meaning,
+                    str_to_phr, for_to_phr)
+  return list(parse_forest[(0,len(words))])[0]
 
 def make_forest(words, meaning, str_to_phr, for_to_phr):
   # initialize
-  parse_forest, costs = initialize_forest(words, str_to_phr)
+  parse_forest, costs = initialize_forest(words, meaning, str_to_phr)
 
   # expand
   for span in xrange(2, len(words)+1): # loop over spans
@@ -38,38 +42,47 @@ def make_forest(words, meaning, str_to_phr, for_to_phr):
 
   return parse_forest, costs
 
-def initialize_forest(words, str_to_phr):
+def initialize_forest(words, meaning, str_to_phr):
   parse_forest = {} # condenses all possible parse tree
   costs = {} # holds cost of each entry in 'parse_forest'
   for i, word in enumerate(words): # set terminals in triangle table
-    exemplars = (f for f in str_to_phr.get(word,[]) if f.span()==1)
+    exemplars = (f for f in str_to_phr.get(word,set([])) if f.span()==1)
     for exemplar in exemplars: 
       parse_forest.setdefault((i,i+1), {})[exemplar] = (word, None, i+1) 
       costs[(exemplar, i, i+1)] = exemplar.cost() # set cost of node
 
+  # if new word, create exemplar node  
+  if len(parse_forest)==0 and len(words)==1:
+    exemplar = ExemplarNode(meaning)
+    exemplar.add_string(words[0])
+    parse_forest.setdefault((0,1), {})[exemplar] = (words[0], None, i+1)
+    costs[(exemplar, i, i+1)] = exemplar.cost()
+
   return parse_forest, costs
 
 def get_complex_phrases(for_to_phr, costs, x, y, span, meaning, top=False):
-  x_phrases = []
-  for formula in x.formulaset():
-    temp_phrases = [phrase for phrase in for_to_phr.get(formula,[])
+  x_phrases = set([])
+  for formula in x.meaning():
+    pred = formula.predicate()
+    temp_phrases = [phrase for phrase in for_to_phr.get(pred,set([]))
                     if phrase.span()==span]
-    x_phrases.extend(temp_phrases)
+    x_phrases |= set(temp_phrases)
 
-  y_phrases = []
-  for formula in y.formulaset():
-    temp_phrases = [phrase for phrase in for_to_phr.get(formula,[])
+  y_phrases = set([])
+  for formula in y.meaning():
+    pred = formula.predicate()
+    temp_phrases = [phrase for phrase in for_to_phr.get(pred,set([]))
                     if phrase.span()==span]
-    y_phrases.extend(temp_phrases)
+    y_phrases |= set(temp_phrases)
 
-  potential_phrases = set(x_phrases) | set(y_phrases)
+  potential_phrases = x_phrases | y_phrases
   complex_phrases = []
   for phrase in potential_phrases:
     temp_phrase = phrase.minimal_change(meaning, x, y)
     if temp_phrase:
-      complex_phrase.append(temp_phrase)
+      complex_phrases.append(temp_phrase)
 
-  complex_phrases.append(PhraseNode.merge_nodes(x, y, meaning))
+  complex_phrases.append(PhraseNode.merge(x, y, meaning))
 
   return complex_phrases
 
