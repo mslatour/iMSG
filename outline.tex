@@ -1,0 +1,58 @@
+\documentclass[a4paper]{article}
+
+\begin{document}
+
+\section{Definitions}
+\begin{description}
+  \item[meaning] set of predicates and relations
+  \item[sentence] tuple of strings (i.e. words)
+  \item[observation] Alignment of meaning and sentence
+  \item[phrase] Hiearchical structure linking meaning to a composition of strings
+\end{description}
+
+\section{ViterbiX (Viterbi eXtended)}
+\begin{enumerate}
+  \item 
+\end{enumerate}
+
+\section{Parent}
+\subsection{Generate observations}
+\begin{enumerate}
+  \item Given a set of templates (e.g. Predicate 1 Relation 1 2 Predicate 2 )
+  \item Given a pool of formulas, where the sampling probability is conditioned on the costs of the corresponding examplar node. Furthermore, there is a prior probability to sample formulas from the pool that do not yet occur in the complex phrases.
+  \item For all templates:
+    \begin{enumerate}
+      \item For all placeholders in template:
+        \begin{enumerate}
+          \item Sample formula from formula pool of the correct type (i.e. predicate or relation)
+          \item Generate top-down a sentence based on the instantiated meaning of the template
+          \item Store the generated observation to be communicated to the child
+        \end{enumerate}
+    \end{enumerate}
+\end{enumerate}
+
+\section{Child}
+\subsection{Converting complex phrases to PCFG}
+\begin{enumerate}
+  \item Given a set of phrases
+  \item For each phrase:
+    \begin{enumerate}
+      \item For every phrase node $n$ in phrase:
+        \begin{enumerate}
+          \item Let $M(n)$ denote the meaning of phrase node $n$
+          \item Let $l(n)$ denote the left child of phrase node $n$
+          \item Let $r(n)$ denote the right child of phrase node $n$
+          \item Let $c(n)$ denote the cost of phrase node $n$
+          \item Add a PCFG rule that maps $M(n) \rightarrow M(l(n)),M(r(n))$ with the probability proportional to $\frac{1}{(c(n)-c(l(n))-c(r(n)))}$
+        \end{enumerate}
+    \end{enumerate}
+  \item Normalize the PCFG
+\end{enumerate}
+\subsection{Learning by observation}
+\begin{enumerate}
+  \item Given the PCFG
+  \item 
+\end{enumerate}
+
+% aan het eind van viterbi is er zowel een goedkoopste sentence prase als een observation phrase (mogelijk dezelfde)
+\end{document}
