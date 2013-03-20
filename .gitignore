@@ -1,3 +1,14 @@
+# tex
+*.aux
+*.log
+*.gz
+*.nav
+*.out
+*.pdf
+*.snm
+*.toc
+
+# temp folder
 tmp/*
 
 *.py[cod]

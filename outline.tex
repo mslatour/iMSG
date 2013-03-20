@@ -7,7 +7,7 @@
   \item[meaning] set of predicates and relations
   \item[sentence] tuple of strings (i.e. words)
   \item[observation] Alignment of meaning and sentence
-  \item[phrase] Hiearchical structure linking meaning to a composition of strings
+  \item[phrase] Hierarchical structure linking meaning to a composition of strings
 \end{description}
 
 \section{ViterbiX (Viterbi eXtended)}
@@ -19,7 +19,7 @@
 \subsection{Generate observations}
 \begin{enumerate}
   \item Given a set of templates (e.g. Predicate 1 Relation 1 2 Predicate 2 )
-  \item Given a pool of formulas, where the sampling probability is conditioned on the costs of the corresponding examplar node. Furthermore, there is a prior probability to sample formulas from the pool that do not yet occur in the complex phrases.
+  \item Given a pool of formulas, where the sampling probability is conditioned on the costs of the corresponding exemplar node. Furthermore, there is a prior probability to sample formulas from the pool that do not yet occur in the complex phrases.
   \item For all templates:
     \begin{enumerate}
       \item For all placeholders in template:
@@ -50,8 +50,21 @@
 \end{enumerate}
 \subsection{Learning by observation}
 \begin{enumerate}
-  \item Given the PCFG
-  \item 
+  \item Given the PCFG, let $T$ be the viterbix parses for the given sentence.
+  \item Let $\tau_o \in T$ be the parse whose meaning matches with the observation meaning
+  \item Let $c(\tau)$ be the cost of a viterbix parse.
+  \item Let $T_s \subset T$ be the set of parses whose cost if lower than $c(\tau_o)$.
+  \item For every rule in $\tau_o$:
+    \begin{enumerate}
+      \item Reinforce rule
+    \end{enumerate}
+  \item For every $\tau_s$ in $T_s$:
+    \begin{enumerate}
+      \item For every rule in $\tau_s$:
+        \begin{enumerate}
+          \item Discourage rule
+        \end{enumerate}
+    \end{enumerate}
 \end{enumerate}
 
 % aan het eind van viterbi is er zowel een goedkoopste sentence prase als een observation phrase (mogelijk dezelfde)
