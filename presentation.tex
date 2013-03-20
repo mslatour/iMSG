@@ -3,6 +3,8 @@
 \usepackage[latin1]{inputenc}
 \usepackage[english]{babel}
 \usepackage{graphicx}
+%\usepackage{qtree}
+\usepackage{tikz-qtree}
 
 \usepackage{lmodern}
 
@@ -105,21 +107,122 @@ small example of a few generated observations and a derived model
   \hfill \includegraphics[scale=0.2]{assets/observation514.png}
 \end{frame}
 
-\section{iMSG Components}
+\section{Generating observations}%(Michael)
 \begin{frame}
-  Generating observations (Michael)
+
+\begin{itemize}
+  \item Template set: $\langle$[P(1)], ..., (P(1),R(1,2),P(2), ...$\rangle$
+  \item Formula pools:
+  \begin{itemize}
+    \item predicates: [snake, pig, ..., walks, smiles, ...] % nouns and intransitive verbs
+    \item relations: [loves, bites, ...] % transitive verbs
+  \end{itemize}
+\end{itemize}
+
 \end{frame}
 
 \begin{frame}
-  ViterbiX (short description of the extension) (Michael)
+\frametitle{Generating meaning}
+\begin{itemize}
+  \item Take template. E.g. \textit{ Predicate(1) Relation(1,2) Predicate(2) }
+  \item For each placeholders in template:
+  \begin{itemize}
+    \item Sample formula from formula pool
+  \end{itemize}
+  \item E.g: \textit{ snake(1) bites(1,2) pig(2) }
+\end{itemize}
 \end{frame}
 
 \begin{frame}
-  Learning from observations using viterbix (Michael)
+\frametitle{Generating sentence}
+\begin{itemize}
+  \item Given meaning and PCFG: generate sentence (top-down)
+\end{itemize}
+\end{frame}
+
+\section{ViterbiX} %(Michael)
+\begin{frame} 
+\frametitle{ViterbiX}
+\begin{itemize}
+  \item Expand nodes X,Y in adjacent spans in chart with:
+  \begin{itemize}
+    \item $A \rightarrow B,C$, where $B \subseteq X$ and $C \subseteq Y$
+    \item $M(X \cup Y) \rightarrow X,Y$
+    \item Note: for all possible mappings
+  \end{itemize}
+\end{itemize}
 \end{frame}
 
 \begin{frame}
-  Evaluation (Michael)
+\frametitle{Example}
+Substitution:\\
+%\begin{itemize}
+  %\item $X = [pig(1)]$
+  %\item $Y = [bites(1,2), snake(1)]$
+%\end{itemize}
+\begin{figure}[!h]
+\centering
+\begin{tikzpicture}[
+   level distance=1.25cm,sibling distance=1cm,
+   edge from parent path={(\tikzparentnode) -- (\tikzchildnode)}]
+\tiny
+\Tree
+[.\text{$[pig(1), loves(2,1), snake(1)]$}
+    \edge node[auto=right,pos=.6] {[1:1]};
+    [.\text{$[pig(1)]$}
+        ]
+    \edge node[auto=left,pos=.6] {\colorbox{red}{[1:2, 2:1]}};
+    [.\text{$\colorbox{red}{[loves(1,2)}, snake(2)]$} 
+        ]
+]
+\end{tikzpicture}
+$\rightarrow$
+\begin{tikzpicture}[
+   level distance=1.25cm,sibling distance=1cm,
+   edge from parent path={(\tikzparentnode) -- (\tikzchildnode)}]
+\tiny
+\Tree
+[.\text{$[pig(1), bites(1,2), snake(2)]$}
+    \edge node[auto=right,pos=.6] {[1:1]};
+    [.\text{$[pig(1)]$}
+        ]
+    \edge node[auto=left,pos=.6] {[1:1, 2:2]};
+    [.\text{$[bites(1,2), snake(1)]$} 
+        ]
+]
+\end{tikzpicture}
+\end{figure}
+
+\end{frame}
+
+\section{Learning}
+\begin{frame} %(Michael)
+\frametitle{Learning from observations using ViterbiX}
+\begin{description}
+  \item[$T$] ViterbiX parses for sentence
+  \item[$\tau_o \in T$] Parse with meaning of observation
+  \item[$c(\tau)$] cost of ViterbiX parses
+  \item[$T_s \subset T$] all parses with lower cost than $c(\tau_o)$
+\end{description}
+
+\begin{itemize}
+\item For every rule in $\tau_o$:
+    \begin{itemize}
+      \item Reinforce rule
+    \end{itemize}
+  \item For every $\tau_s$ in $T_s$:
+    \begin{itemize}
+      \item For every rule in $\tau_s$:
+        \begin{itemize}
+          \item Discourage rule
+        \end{itemize}
+    \end{itemize}
+\end{itemize}
+\end{frame}
+
+\section{Evaluation}
+\begin{frame} %(Michael)
+\frametitle{Evaluation}
 \end{frame}
 
 \section{Status}
