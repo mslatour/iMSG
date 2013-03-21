@@ -85,21 +85,17 @@
   \end{center}
 \end{frame}
 
-\begin{frame}{Working with semantics}
-  Summary of batali (recap) (Sander)
-Intuition behind learning from observations
-small example of a few generated observations and a derived model
-  encourage / discourage
-\end{frame}
 
-\begin{frame}{Vocabulair}
+\begin{frame}{Semantic vocabulair}
   \begin{columns}[c]
     \column{.65\textwidth}
       \begin{description}
         \item[meaning] set of predicates and relations
-        \item[sentence] tuple of strings (i.e. words)
+        \item[sentence] concatenated strings (i.e. words)
         \item[observation] Alignment of meaning and sentence
-        \item[phrase] Hierarchical structure linking meaning to a composition of strings
+        \item[phrase] Hierarchical structure from meaning to string
+        \item[examplar phrase] Lexicon
+        \item[complex phrase] Conjunction of two phrases
       \end{description}
     \column{.35\textwidth}
       \includegraphics[scale=0.2]{assets/examplar514a.png}
@@ -107,9 +103,18 @@ small example of a few generated observations and a derived model
   \hfill \includegraphics[scale=0.2]{assets/observation514.png}
 \end{frame}
 
+\begin{frame}{Batali}
+  \begin{itemize}
+    \item Simplified support for grammar and semantics
+    \item Inducing phrases by creation or alteration
+    \item Phrases have costs based on their construction
+    \item Encourage and discourage to update ``probabilistic'' model
+  \end{itemize}
+\end{frame}
+
 \section{iMSG}
 \subsection{Assumptions}
-\begin{frame}
+\begin{frame}{Assumptions}
 \begin{itemize}
   \item The sentence is separated in words (vs. one signal)
   \item The order in the meaning corresponds to the order of the words
