@@ -28,8 +28,8 @@ def make_forest(words, meaning, str_to_phr, for_to_phr):
     for i in xrange(len(words)-span+1): # loop over sub-spans [i-k), [k-j)
       j = i+span
       for k in xrange(i+1, j): # k splits span [i,j)
-        left = parse_forest.get((i,k), {})
-        right= parse_forest.get((k,j), {})
+        left = parse_forest.get((i,k), [])
+        right= parse_forest.get((k,j), [])
         for x in left: # loop over nodes with span [i-k)
           for y in right: # loop over nodes with span [k-j)
             complex_phrases = get_complex_phrases(for_to_phr, costs, x, y, 
@@ -38,7 +38,7 @@ def make_forest(words, meaning, str_to_phr, for_to_phr):
               current_cost = phrase.cost()
               if current_cost > costs.get((phrase, i, j), float('-inf')):
                 costs[(phrase, i, j)] = current_cost
-                parse_forest.setdefault((i,j), {})[phrase] = (x, y, k)
+                parse_forest.setdefault((i,j), []).append(phrase)
 
   return parse_forest, costs
 
@@ -46,16 +46,16 @@ def initialize_forest(words, meaning, str_to_phr):
   parse_forest = {} # condenses all possible parse tree
   costs = {} # holds cost of each entry in 'parse_forest'
   for i, word in enumerate(words): # set terminals in triangle table
-    exemplars = (f for f in str_to_phr.get(word,set([])) if f.span()==1)
+    exemplars = (f for f in str_to_phr.get(word,[]) if f.span()==1)
     for exemplar in exemplars: 
-      parse_forest.setdefault((i,i+1), {})[exemplar] = (word, None, i+1) 
+      parse_forest.setdefault((i,i+1), []).append(exemplar)
       costs[(exemplar, i, i+1)] = exemplar.cost() # set cost of node
 
   # if new word, create exemplar node  
   if len(parse_forest)==0 and len(words)==1:
     exemplar = ExemplarNode(meaning)
     exemplar.add_string(words[0])
-    parse_forest.setdefault((0,1), {})[exemplar] = (words[0], None, i+1)
+    parse_forest.setdefault((0,1), []).append(exemplar)
     costs[(exemplar, i, i+1)] = exemplar.cost()
 
   return parse_forest, costs
