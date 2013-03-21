@@ -153,7 +153,7 @@ small example of a few generated observations and a derived model
   \begin{itemize}
     \item $A \rightarrow B,C$, where $B \subseteq X$ and $C \subseteq Y$
     \item $M(X \cup Y) \rightarrow X,Y$
-    \item Note: for all possible mappings
+    \item Note: for all possible argument mappings
   \end{itemize}
 \end{itemize}
 \end{frame}
@@ -201,7 +201,7 @@ $\rightarrow$
 \begin{description}
   \item[$T$] ViterbiX parses for sentence
   \item[$\tau_o \in T$] Parse with meaning of observation
-  \item[$c(\tau)$] cost of ViterbiX parses
+  \item[$c(\tau)$] cost of ViterbiX parse
   \item[$T_s \subset T$] all parses with lower cost than $c(\tau_o)$
 \end{description}
 
@@ -222,10 +222,15 @@ $\rightarrow$
 
 \section{Evaluation}
 \begin{frame}{Evaluation} %(Michael)
+\begin{itemize}
+  \item Learnability: cost difference between best sentence parse and observation parse
+  \item Grammar size: number of CFG rules
+  \item Expressiveness: 
+\end{itemize}
 \end{frame}
 
-\section{Status}
+\section{Status} % (Sander)
 \begin{frame}
-  Current state / Future plans (Sander)
+  Current state / Future plans
 \end{frame}
 \end{document}
