@@ -44,7 +44,10 @@ def make_forest(words, meaning, grammar):
         right= parse_forest.get((k,j), {})        
         for x in left: # loop over nodes with span [i-k)
           for y in right: # loop over nodes with span [k-j)
-            inv_grammar = grammar.extended_grammar((x,y)).inverse()
+            rhs = (x,y)
+            rhs_costs = (costs[(x,i,k)], costs[(y,k,j)])
+            inv_grammar = grammar.extended_grammar(
+                          rhs, rhs_costs).inverse()
             for lhs, current_cost in inv_grammar[(x,y)]: # expand trees
               if current_cost < costs.get((lhs, i, j), float('inf')):
                 costs[(lhs, i, j)] = current_cost

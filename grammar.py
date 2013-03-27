@@ -8,15 +8,29 @@ class Grammar:
   def rules(self):
     return self._rules
 
-  def extended_grammar(self, rhs):
+  def extended_grammar(self, rhs, rhs_costs):
     extended_rules = {}
     for rule in self.rules():
-      temp_rules = rule.extend(rhs)
+      temp_rules = rule.extend(rhs, rhs_costs)
       for temp in temp_rules:
         if temp.cost() < extended_rules.get(temp, float('inf')):
           extended_rules[temp] = temp.cost()
 
+    new_rules = self.create_rules(rhs[0], rhs[1]) # TODO always cheaper to create new rule?
+    for rule in new_rules:
+      if rule.cost() < extended_rules.get(rule, float('inf')):
+        extended_rules[rule] = rule.cost()
+
     return Grammar(extended_rules.keys())
+
+  def create_rules(self, left, right):
+    rules = []
+    # TODO
+    # get all argument mappings for left and right
+    # apply all combinations to union of left and right
+    # create rule and add to rules
+    # cost of new rule = left.cost() + right.cost() + COST_MERGE
+    return rules
 
   def inverse(self):
     inverse = {}
