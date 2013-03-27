@@ -31,9 +31,9 @@ def get_rules(parse_forest, node, span, rules = []):
 
   return rules
 
-def make_forest(words, meaning, lexicon, grammar):
+def make_forest(words, meaning, grammar):
   # initialize
-  parse_forest, costs = initialize_forest(words, meaning, lexicon)
+  parse_forest, costs = initialize_forest(words, meaning, grammar.inverse())
 
   # expand
   for span in xrange(2, len(words)+1): # loop over spans
@@ -56,14 +56,10 @@ def initialize_forest(words, meaning, lexicon):
   parse_forest = {} # condenses all possible parse tree
   costs = {} # holds cost of each entry in 'parse_forest'
   for i, word in enumerate(words): # set terminals in triangle table
-    lex_rules = [f for f in lexicon.get(word,[]) if f.span()==1]
-    if not lex_rules: # create a new lexical rule
-      lex_rules = [PCFGRule(meaning[i], (word,))]
-
-    for rule in lex_rules:
-      lhs = (rule.lhs(),)
+    for lhs, current_cost in lexicon.get( (word,),
+                             PCFGRule(meaning[i], (word,)) ):
       parse_forest.setdefault((i,i+1), {})[lhs] = (word, None, i+1)
-      costs[(lhs, i, i+1)] = rule.cost() # set cost of node
+      costs[(lhs, i, i+1)] = current_cost # set cost of node
 
   return parse_forest, costs
 
