@@ -14,8 +14,8 @@ import re
 from phrase import *
 from formula import *
 
-def parse(words, meaning, str_to_phr, for_to_phr):
-  parse_forest, _ = make_forest(words, meaning,
+def parse_rules(words, meaning, str_to_phr, for_to_phr):
+  parse_forest, costs = make_forest(words, meaning,
                     str_to_phr, for_to_phr)
   return list(parse_forest[(0,len(words))])[0]
 
@@ -28,39 +28,44 @@ def make_forest(words, meaning, str_to_phr, for_to_phr):
     for i in xrange(len(words)-span+1): # loop over sub-spans [i-k), [k-j)
       j = i+span
       for k in xrange(i+1, j): # k splits span [i,j)
-        left = parse_forest.get((i,k), [])
-        right= parse_forest.get((k,j), [])
+        grammar = get_extended_grammar(for_to_phr, j-i)
+        left = parse_forest.get((i,k), {})
+        right= parse_forest.get((k,j), {})        
         for x in left: # loop over nodes with span [i-k)
           for y in right: # loop over nodes with span [k-j)
-            complex_phrases = get_complex_phrases(for_to_phr, costs, x, y, 
-                                j-i, meaning)
-            for phrase in complex_phrases: # expand trees
-              current_cost = phrase.cost()
-              if current_cost > costs.get((phrase, i, j), float('-inf')):
-                costs[(phrase, i, j)] = current_cost
-                parse_forest.setdefault((i,j), []).append(phrase)
+            for rule in grammar[(x,y)]: # expand trees
+              node = (rule.meaning(),)
+              current_cost = rule.cost()
+              if current_cost < costs.get((node, i, j), float('inf')):
+                costs[(node, i, j)] = current_cost
+                parse_forest.setdefault((i,j), {})[node] = (x,y,k)
 
   return parse_forest, costs
 
-def initialize_forest(words, meaning, str_to_phr):
+def initialize_forest(words, meaning, lexicon):
   parse_forest = {} # condenses all possible parse tree
   costs = {} # holds cost of each entry in 'parse_forest'
   for i, word in enumerate(words): # set terminals in triangle table
-    exemplars = (f for f in str_to_phr.get(word,[]) if f.span()==1)
-    for exemplar in exemplars: 
-      parse_forest.setdefault((i,i+1), []).append(exemplar)
-      costs[(exemplar, i, i+1)] = exemplar.cost() # set cost of node
+    exemplars = (f for f in lexicon.get(word,[]) if f.span()==1)
+    for exemplar in exemplars:
+      node = (exemplar.meaning(),)
+      parse_forest.setdefault((i,i+1), {})[node] = (word, None, i+1)
+      costs[(node, i, i+1)] = exemplar.cost() # set cost of node
 
   # if new word, create exemplar node  
   if len(parse_forest)==0 and len(words)==1:
     exemplar = ExemplarNode(meaning)
     exemplar.add_string(words[0])
-    parse_forest.setdefault((0,1), []).append(exemplar)
-    costs[(exemplar, i, i+1)] = exemplar.cost()
+    parse_forest.setdefault((0,1), {})[meaning] = (words[0], None, 1)
+    costs[(meaning, 0, 1)] = COST_NEW
 
   return parse_forest, costs
 
-def get_complex_phrases(for_to_phr, costs, x, y, span, meaning, top=False):
+def get_extended_grammar(for_to_rule, x, y, span):
+  rules = []
+  for rule in for_to_rule[x]:
+    if rule.span == span:
+
   x_phrases = set([])
   for formula in x.meaning():
     pred = formula.predicate()
