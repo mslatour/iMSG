@@ -1,3 +1,5 @@
+from itertools import product
+
 class Formula:
   _predicate = None
 
@@ -115,6 +117,9 @@ class FormulaSet:
     else:
       return NotImplemented
 
+  def __hash__(self):
+    return hash(tuple(self._formulas))
+
   def __eq__(self, other):
     return len(set(self)&set(other)) == len(other)
   
@@ -186,21 +191,37 @@ class FormulaSet:
     return self.__str__()
 
 class ArgumentMap:
-  _amap = {1:1,2:2}
+  """
+  :param amap - Argument map dictionary
+  :const MAX_CARDINALITY - Maximum argument number
+  """
+  MAX_CARDINALITY = 2
 
   def __init__(self, amap={}):
-    self._amap = {1:1,2:2}
+    self.amap = {1:1,2:2}
     for arg in amap:
-      self._amap[arg] = amap[arg]
+      self.amap[arg] = amap[arg]
+
+  def __eq__(self, item):
+    return self.amap == item.amap
+
+  def __hash__(self):
+    return hash(tuple(zip(self.amap.keys(),self.amap.values())))
 
   def map(self, arg):
-    return self._amap[arg]
+    return self.amap[arg]
 
   def __str__(self):
-    return str(self._amap)
+    return str(self.amap)
 
   def __repr__(self):
     return self.__str__()
+
+  @staticmethod
+  def generate_amap_set(n):
+    return product(*[[ArgumentMap(dict(zip(args,x))) \
+      for x in product(args, repeat=ArgumentMap.MAX_CARDINALITY)] \
+        for args in [range(1,ArgumentMap.MAX_CARDINALITY+1)]*n])
 
   @staticmethod
   def find_mapping(a, b):
