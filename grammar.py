@@ -8,6 +8,23 @@ class Grammar:
   def rules(self):
     return self._rules
 
+  def extended_grammar(self, rhs):
+    extended_rules = {}
+    for rule in self.rules():
+      temp_rules = rule.extend(rhs)
+      for temp in temp_rules:
+        if temp.cost() < extended_rules.get(temp, float('inf')):
+          extended_rules[temp] = temp.cost()
+
+    return Grammar(extended_rules.keys())
+
+  def inverse(self):
+    inverse = {}
+    for rule in self.rules():
+      inverse.setdefault(rule.rhs(), []).append((rule.lhs(), rule.cost()))
+
+    return inverse
+
   def __add__(self, other):
     if isinstance(other, Grammar):
       return Grammar(self.rules() + other.rules())
