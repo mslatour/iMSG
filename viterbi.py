@@ -59,8 +59,11 @@ def initialize_forest(words, meaning, lexicon):
   parse_forest = {} # condenses all possible parse tree
   costs = {} # holds cost of each entry in 'parse_forest'
   for i, word in enumerate(words): # set terminals in triangle table
-    for lhs, current_cost in lexicon.get( (word,),
-                             PCFGRule(meaning[i], (word,)) ):
+    if (word,) in lexicon:
+      lhs_info = lexicon[(word,)]
+    else:
+      lhs_info = [(PCFGRule(meaning[i],(word,)), COST_NEW)]
+    for lhs, current_cost in lhs_info:
       parse_forest.setdefault((i,i+1), {})[lhs] = (word, None, i+1)
       costs[(lhs, i, i+1)] = current_cost # set cost of node
 
