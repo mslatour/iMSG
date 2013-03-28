@@ -11,9 +11,10 @@ probability.
 '''
 
 import re
-from PCFG import *
+from pcfg import *
+from formula import ArgumentMap
 
-def get_rules(parse_forest, node, span, rules = []):
+def get_rules(parse_forest, costs, node, span, rules = []):
     i, j = span
     entry = parse_forest[span].get(node, None)
     if not entry: # return if reache leave
@@ -21,13 +22,21 @@ def get_rules(parse_forest, node, span, rules = []):
 
     left_child, right_child, k = entry
     if right_child: # if binary rule
-        current_rule = PCFGRule(node, (left_child,right_child))
+        rhs = (left_child,right_child)
+        cost = costs[(node,)+span]
+        amaps = (ArgumentMap.find_mapping(left_child, node),
+                 ArgumentMap.find_mapping(right_child, node))        
+        current_rule = PCFGRule(rhs, cost, amaps)
         rules.append(current_rule)
         get_rules(parse_forest, left_child, (i,k), rules)
-    else: # if unary rule
-        current_rule = PCFGRule(node, (left_child,))
-        rules.append(current_rule)
         get_rules(parse_forest, right_child, (k,j), rules)
+    else: # if unary rule
+        rhs = (left_child,)
+        cost = costs[(node,)+span]
+        amaps = (ArgumentMap.find_mapping(left_child, node),)
+        current_rule = PCFGRule(rhs, cost, amaps)
+        rules.append(current_rule)
+        get_rules(parse_forest, left_child, (i,k), rules)
 
     return rules
 
@@ -62,10 +71,10 @@ def initialize_forest(words, meaning, lexicon):
         if (word,) in lexicon:
             lhs_info = lexicon[(word,)]
         else:
-            lhs_info = [(PCFGRule(meaning[i],(word,)), COST_NEW)]
+            lhs_info = [(PCFGLexicalRule(meaning[i],(word,)),
+                        COST_NEW)]
         for lhs, current_cost in lhs_info:
             parse_forest.setdefault((i,i+1), {})[lhs] = (word, None, i+1)
             costs[(lhs, i, i+1)] = current_cost # set cost of node
 
     return parse_forest, costs
-
