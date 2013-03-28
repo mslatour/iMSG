@@ -92,7 +92,7 @@ class Grammar:
                 if temp.cost < extended_rules.get(temp, float('inf')):
                     extended_rules[temp] = temp.cost
 
-        rule_gen = self.create_rule_generator(rhs, rhs_costs) 
+        rule_gen = self.create_rule_generator(rhs, rhs_costs)
         for rule in rule_gen:
             if rule.cost < extended_rules.get(rule, float('inf')):
                 extended_rules[rule] = rule.cost
@@ -106,7 +106,7 @@ class Grammar:
     def inverse(self):
         inverse = {}
         for rule in self.rules():
-            inverse.setdefault(rule.rhs(), []).append((rule.lhs(), rule.cost))
+            inverse.setdefault(rule.rhs, []).append((rule.lhs, rule.cost))
 
         return inverse
 

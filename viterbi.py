@@ -70,8 +70,8 @@ def initialize_forest(words, meaning, lexicon):
         if (word,) in lexicon:
             lhs_info = lexicon[(word,)]
         else:
-            lex_rule = PCFGLexicalRule(meaning[i],(word,))
-            lhs_info = [(lex_rule, lex_rule.cost())]
+            lex_rule = PCFGLexicalRule(meaning[i:i+1],(word,))
+            lhs_info = [(lex_rule.lhs, lex_rule.cost)]
         for lhs, current_cost in lhs_info:
             parse_forest.setdefault((i, i+1), {})[lhs] = (word, None, i+1)
             costs[(lhs, i, i+1)] = current_cost # set cost of node

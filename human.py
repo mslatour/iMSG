@@ -65,13 +65,13 @@ class Child(Human):
                                                     lexicon, grammar)
         correct_parse_cost = None
         span = (0,len(words))
-        for top in parseForest[span]:
+        for top in parse_forest[span]:
             if top==meaning:
                 correct_parse_cost = costs[(top,)+span]
                 self.reinforce(parse_forest, lexicon, grammar, top)
                 break
 
-        for top in parseForest[span]:
+        for top in parse_forest[span]:
             if top==meaning:
                 continue
 
