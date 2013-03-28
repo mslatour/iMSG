@@ -31,7 +31,7 @@ class Formula:
     return NotImplemented
 
   def __hash__(self):
-    return int("".join([str(ord(c)) for c in self.predicate()]))
+    return hash(self.predicate())
 
   def __str__(self):
     return "(%s)" % (self.predicate(),)
@@ -71,11 +71,11 @@ class RelationFormula(Formula):
         other.arg2() == self.arg2()
   
   def __hash__(self):
-    return int("".join([str(ord(c)-32) for c in self.predicate()]+ \
-        [str(self.arg1()), str(self.arg2())]))
+    return hash((self.predicate(), self.arg1(), self.arg2()))
 
 class PropertyFormula(Formula):
   _arg1 = 1
+
   def __init__(self, predicate, arg1=1):
     Formula.__init__(self, predicate)
     self._arg1 = arg1
@@ -98,8 +98,7 @@ class PropertyFormula(Formula):
         other.arg1() == self.arg1()
 
   def __hash__(self):
-    return int("".join([str(ord(c)-32) for c in self.predicate()]+ \
-        [str(self.arg1())]))
+    return hash((self.predicate(), self.arg1()))
 
 class FormulaSet:
   _formulas = []
