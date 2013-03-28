@@ -91,7 +91,7 @@ class Grammar:
 
     def rules(self):
         return self._rules
-
+        
     def extended_grammar(self, rhs, rhs_costs):
         extended_rules = {}
         for rule in self.rules():
@@ -171,3 +171,9 @@ class Grammar:
 
     def extend(self, item):
         self._rules.extend(item)
+
+    def __str__(self):
+        return "Grammar%s" % self.rules()
+
+    def __repr__(self):
+        return str(self)
