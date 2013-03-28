@@ -77,3 +77,4 @@ def initialize_forest(words, meaning, lexicon):
             costs[(lhs, i, i+1)] = current_cost # set cost of node
 
     return parse_forest, costs
+
