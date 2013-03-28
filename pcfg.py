@@ -20,10 +20,10 @@ class PCFGRule:
         self.cost = cost
 
     def __eq__(self, item):
-        return (self.rhs == item.rhs and self.amap == item.amap)
+        return (self.lhs == item.lhs and self.rhs == item.rhs)
 
     def __hash__(self):
-        return hash((self.rhs, self.amap))
+        return hash((self.lhs, self.rhs))
 
     def __str__(self):
         return "%s --> %s [%d]" % (self.lhs, self.rhs, self.cost)
@@ -60,6 +60,20 @@ class PCFGRule:
 
         return pcfgs
 
+class PCFGLexicalRule(PCFGRule):
+    """
+    :param lhs - Left-hand-side of the rule (formulaset)
+    :param rhs - Right-hand-side of the rule (tuple of one string)
+    :param cost - Cost of using this rule
+    """
+
+    def __init__(self, lhs, rhs, cost):
+        self.lhs = lhs
+        self.rhs = rhs
+        self.cost = cost
+
+    def expand(self, rhs, costs):
+        return [self]
 
 class Grammar:
     _rules = []
