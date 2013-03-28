@@ -67,10 +67,10 @@ class PCFGLexicalRule(PCFGRule):
     :param cost - Cost of using this rule
     """
 
-    def __init__(self, lhs, rhs, cost):
+    def __init__(self, lhs, rhs):
         self.lhs = lhs
         self.rhs = rhs
-        self.cost = cost
+        self.cost = COST_NEW
 
     def expand(self, rhs, costs):
         return [self]
