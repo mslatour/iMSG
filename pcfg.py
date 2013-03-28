@@ -1,9 +1,11 @@
 from formula import *
 
-COST_AMAP = 1
-COST_MERGE = 2
-COST_SUBSTITUTION = 3
-COST_NEW = 4
+COST_AMAP = 0.05
+COST_MERGE = 1.5
+COST_SUBSTITUTION = 0.1
+COST_NEW = 1.0
+REINFORCEMENT_RATE = 0.1
+DISCOURAGING_RATE = 0.1
 
 class PCFGRule:
     """
@@ -30,6 +32,12 @@ class PCFGRule:
 
     def __repr__(self):
         return str(self)
+
+    def reinforce(self):
+        self.cost *= (1-REINFORCEMENT_RATE)
+
+    def discourage(self):
+        self.cost += DISCOURAGING_RATE
 
     def expand(self, rhs, costs):
         rule = self
