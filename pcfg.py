@@ -14,8 +14,9 @@ class PCFGRule:
     """
     def __init__(self, rhs, cost, amap=None):
         self.rhs = rhs
-        self.amap = amap if amap is not None else ArgumentMap()
-        self.lhs = FormulaSet([x.apply_argument_map(self.amap) for x in rhs])
+        self.amap = amap if amap != None else tuple([ArgumentMap()]*len(rhs))
+        self.lhs = FormulaSet([x.apply_argument_map(self.amap[i]) \
+                for i,x in enumerate(rhs)])
         self.cost = cost
 
     def __eq__(self, item):
@@ -23,6 +24,12 @@ class PCFGRule:
 
     def __hash__(self):
         return hash((self.rhs,self.amap))
+
+    def __str__(self):
+        return "%s --> %s [%d]" % (self.lhs, self.rhs, self.cost)
+
+    def __repr__(self):
+        return str(self)
 
     def expand(self, rhs, costs):
         rule = self
