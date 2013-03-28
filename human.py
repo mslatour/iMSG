@@ -18,13 +18,13 @@ class Child(Human):
         parse_forest, costs = viterbi.make_forest(words, meaning, self.grammar)
         correct_parse_cost = None
         span = (0,len(words))
-        for top in parseForest[span]:
+        for top in parse_forest[span]:
             if top==meaning:
                 correct_parse_cost = costs[(top,)+span]
                 self.reinforce(parse_forest, costs, top, span)
                 break
 
-        for top in parseForest[span]:
+        for top in parse_forest[span]:
             if top==meaning:
                 continue
 
