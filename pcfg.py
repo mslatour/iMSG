@@ -28,7 +28,7 @@ class PCFGRule:
         return hash((self.lhs, self.rhs))
 
     def __str__(self):
-        return "%s --> %s [%d]" % (self.lhs, self.rhs, self.cost)
+        return "%s --> %s [%f]" % (self.lhs, self.rhs, self.cost)
 
     def __repr__(self):
         return str(self)
@@ -75,10 +75,10 @@ class PCFGLexicalRule(PCFGRule):
     :param cost - Cost of using this rule
     """
 
-    def __init__(self, lhs, rhs):
+    def __init__(self, lhs, rhs, cost=COST_NEW):
         self.lhs = lhs
         self.rhs = rhs
-        self.cost = COST_NEW
+        self.cost = cost
 
     def expand(self, rhs, costs):
         return [self]

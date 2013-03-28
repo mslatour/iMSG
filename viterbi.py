@@ -27,15 +27,13 @@ def get_rules(parse_forest, costs, node, span, rules = []):
                  ArgumentMap.find_mapping(right_child, node))        
         current_rule = PCFGRule(rhs, cost, amaps)
         rules.append(current_rule)
-        get_rules(parse_forest, left_child, (i, k), rules)
-        get_rules(parse_forest, right_child, (k, j), rules)
+        get_rules(parse_forest, costs, left_child, (i, k), rules)
+        get_rules(parse_forest, costs, right_child, (k, j), rules)
     else: # if unary rule
-        rhs = (left_child,)
         cost = costs[(node,)+span]
-        amaps = (ArgumentMap.find_mapping(left_child, node),)
-        current_rule = PCFGRule(rhs, cost, amaps)
+        current_rule = PCFGLexicalRule(node, left_child, cost)
         rules.append(current_rule)
-        get_rules(parse_forest, left_child, (i, k), rules)
+        get_rules(parse_forest, costs, left_child, (i, k), rules)
 
     return rules
 
