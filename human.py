@@ -1,4 +1,4 @@
-from grammar import Grammar
+from pcfg import Grammar
 import viterbi
 
 class Human:
