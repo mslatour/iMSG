@@ -1,5 +1,6 @@
 from random import random, choice
 from formula import *
+from datetime import datetime
 from pcfg import *
 from human import *
 
@@ -13,7 +14,7 @@ def sample_lexicon(human, formula_class, universal_meaning, exploration_rate):
     # Normalized constant
     Z = float(sum([1/float(rule.cost) for rule in relevant_lexicon]))
     Z *= (1+exploration_rate)
-    
+
     unseen_meaning = [f.predicate() for f in universal_meaning \
             if isinstance(f, formula_class)]
 
@@ -27,8 +28,12 @@ def sample_lexicon(human, formula_class, universal_meaning, exploration_rate):
         p += 1/(float(rule.cost)*Z)
         if p >= thresh:
             return rule.lhs[0].predicate()
-    # No sample yet => exploration
-    return choice(unseen_meaning)
+    if len(unseen_meaning) > 0:
+        # No sample yet => explore unseen meanings
+        return choice(unseen_meaning)
+    else:
+        # or if every meaning is explored, sample again without no exploration
+        return sample_lexicon(human, formula_class, universal_meaning, 0)
 
 universal_meaning = [\
     PropertyFormula('snake',1), \
@@ -45,38 +50,47 @@ universal_meaning = [\
 templates = [\
         [(PropertyFormula, 1), (RelationFormula, 1, 2), (PropertyFormula, 2)],\
         [(PropertyFormula, 1), (RelationFormula, 2, 1), (PropertyFormula, 2)],\
+        [(PropertyFormula, 1), (RelationFormula, 1, 1)], \
+        [(PropertyFormula, 1), (RelationFormula, 1, 1)], \
+        [(PropertyFormula, 1), (RelationFormula, 1, 1)], \
+        [(PropertyFormula, 1), (RelationFormula, 1, 1)], \
+        [(PropertyFormula, 1), (RelationFormula, 1, 1)], \
+        [(PropertyFormula, 1), (RelationFormula, 1, 1)], \
+        [(PropertyFormula, 1), (RelationFormula, 1, 1)], \
+        [(PropertyFormula, 1), (RelationFormula, 1, 1)], \
+        [(PropertyFormula, 1), (RelationFormula, 1, 1)], \
+        [(PropertyFormula, 1), (RelationFormula, 1, 1)], \
+        [(PropertyFormula, 1), (RelationFormula, 1, 1)], \
+        [(PropertyFormula, 1), (RelationFormula, 1, 1)], \
+        [(PropertyFormula, 1), (RelationFormula, 1, 1)], \
+        [(PropertyFormula, 1), (RelationFormula, 1, 1)], \
+        [(PropertyFormula, 1), (RelationFormula, 1, 1)], \
+        [(PropertyFormula, 1), (RelationFormula, 1, 1)], \
+        [(PropertyFormula, 1), (RelationFormula, 1, 1)], \
         [(PropertyFormula, 1), (RelationFormula, 1, 1)] \
 ]
 
-exploration_rate = 0.01
+exploration_rate = 0.2
 number_intentions = 10
-number_iterations = 100
+number_iterations = 25
 
-# dummy init parent
-snake1 = FormulaSet([PropertyFormula('snake',1)])
-bite12 = FormulaSet([RelationFormula('bite',1,2)])
-pig1 = FormulaSet([PropertyFormula('pig',1)])
-pig2 = FormulaSet([PropertyFormula('pig',2)])
-lex1 = PCFGLexicalRule(snake1, ('fala'))
-lex2 = PCFGLexicalRule(pig1, ('odu'))
-lex2.cost = 10
-lex3 = PCFGLexicalRule(bite12, ('kapa'))
-parent = Parent(Grammar([lex1,lex2,lex3]))
-# end dummy init parent
-
+# Init first (random) parent
+parent = Parent()
 for iteration in range(number_iterations):
-    print "[%d] Start iteration" % (iteration,)
+    print "[%s] Start iteration %d" % (datetime.today().time(), iteration)
     child = Child()
     
     for i in range(number_intentions):
         template = choice(templates)
         intention = FormulaSet()
         for placeholder in template:
-            predicate = sample_lexicon(parent, placeholder[0], universal_meaning, 0.01)
+            predicate = sample_lexicon(parent, placeholder[0], \
+                    universal_meaning, exploration_rate)
             intention.append(placeholder[0](predicate, *placeholder[1:]))
-
-        print "[%d] Communicate %d: %s" % (iteration, i, intention,)
         parent.communicate(intention, child)
+    print "[%s] Child fully educated, grammar size: %d" % \
+            (datetime.today().time(), len(child.grammar))
     # Grow up
     parent = child.grow_up()
-    print "[%d] Child grown up" % (iteration,)
+    print "[%s] Child grown up, end of iteration %d" % \
+            (datetime.today().time(), iteration)
