@@ -92,20 +92,20 @@ class Grammar:
     def rules(self):
         return self._rules
         
-    def extended_grammar(self, rhs, rhs_costs):
-        extended_rules = {}
+    def expanded_grammar(self, rhs, rhs_costs):
+        expanded_rules = {}
         for rule in self.rules():
-            temp_rules = rule.extend(rhs, rhs_costs)
+            temp_rules = rule.expand(rhs, rhs_costs)
             for temp in temp_rules:
-                if temp.cost < extended_rules.get(temp, float('inf')):
-                    extended_rules[temp] = temp.cost
+                if temp.cost < expanded_rules.get(temp, float('inf')):
+                    expanded_rules[temp] = temp.cost
 
         rule_gen = self.create_rule_generator(rhs, rhs_costs)
         for rule in rule_gen:
-            if rule.cost < extended_rules.get(rule, float('inf')):
-                extended_rules[rule] = rule.cost
+            if rule.cost < expanded_rules.get(rule, float('inf')):
+                expanded_rules[rule] = rule.cost
 
-        return Grammar(extended_rules.keys())
+        return Grammar(expanded_rules.keys())
 
     def create_rule_generator(self, rhs, costs):
         amapset = ArgumentMap.generate_amap_set(len(rhs))
