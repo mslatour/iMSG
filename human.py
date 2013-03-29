@@ -1,4 +1,7 @@
 from pcfg import *
+from random import sample, randint
+from datetime import datetime
+import string
 import viterbi
 
 class Human:
@@ -61,7 +64,24 @@ class Parent(Human):
     def __init__(self, grammar = None):
         Human.__init__(self, grammar)
 
-                
-    def communicate(self, meaning, child):
-        pass
+    
+    def make_up_word(self):
+        return "".join(sample(string.letters, randint(4,8)))
 
+    def communicate(self, meaning, child):
+        words = []
+        for formula in meaning:
+            word = None
+            for rule in self.grammar:
+                if isinstance(rule, PCFGLexicalRule) and rule.lhs[0] == formula:
+                    word = rule.rhs
+                    break
+            if word is None:
+                word = self.make_up_word()
+                self.grammar.append(\
+                        PCFGLexicalRule(FormulaSet([formula]), word))
+            words.append(word)
+
+        print "[%s] Communicate (%s,%s)" % \
+                (datetime.today().time(), words, meaning)
+        child.observe((words, meaning))
