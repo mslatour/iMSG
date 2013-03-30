@@ -1,6 +1,6 @@
 from pcfg import PCFGLexicalRule, Grammar
 from formula import FormulaSet
-from random import sample, randint
+from random import sample, randint, seed
 from datetime import datetime
 import string
 import viterbi
@@ -9,9 +9,15 @@ class Human:
     """
     :param grammar
     """
-    def __init__(self, grammar = None):
+    def __init__(self, grammar = None, seed_value = None):
         self.grammar = grammar if grammar is not None else Grammar()
+        self.seed_value = seed_value
+        seed(seed_value)
         self.cost = 0
+
+    def set_seed(self, seed_value):
+        self.seed_value = seed_value
+        seed(seed_value)
 
     def get_last_cost(self):
         return self.cost
@@ -19,8 +25,8 @@ class Human:
 
 class Child(Human):
 
-    def __init__(self, grammar = None):
-        Human.__init__(self, grammar)
+    def __init__(self, grammar = None, seed_value = None):
+        Human.__init__(self, grammar, seed_value)
         
     def observe(self, (words, meaning)):
         parse_forest, costs = viterbi.make_forest(words, meaning, self.grammar)
@@ -29,7 +35,8 @@ class Child(Human):
         for top in parse_forest[span]: # find parse that matches the meaning
             if top == meaning:
                 correct_parse_cost = costs[(top,)+span]
-                reinforced_rules = self.reinforce(parse_forest, costs, top, span)
+                reinforced_rules = self.reinforce(parse_forest, costs, 
+                                                  top, span)
                 break
 
         for rule in reinforced_rules: # add reinforced rules to grammar
@@ -62,9 +69,8 @@ class Child(Human):
 
 
 class Parent(Human):
-    def __init__(self, grammar = None):
-        Human.__init__(self, grammar)
-
+    def __init__(self, grammar = None, seed_value = None):
+        Human.__init__(self, grammar, seed_value)
     
     def make_up_word(self):
         return "".join(sample(string.letters, randint(4, 8)))

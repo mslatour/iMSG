@@ -1,41 +1,11 @@
-from random import random, choice
+from random import random, choice, seed
 from formula import RelationFormula, PropertyFormula, FormulaSet
 from datetime import datetime
 from pcfg import PCFGLexicalRule
 from human import Child, Parent
 
-def sample_lexicon(human, formula_class, universal_meaning, exploration_rate):
-    thresh = random()
-    
-    relevant_lexicon = [ rule for rule in human.grammar if \
-            isinstance(rule, PCFGLexicalRule) and \
-            isinstance(rule.lhs[0], formula_class)]
 
-    # Normalized constant
-    Z = float(sum([1/float(rule.cost) for rule in relevant_lexicon]))
-    Z *= (1+exploration_rate)
-
-    unseen_meaning = [f.predicate() for f in universal_meaning \
-            if isinstance(f, formula_class)]
-
-    # Cumulative probability density
-    p = 0
-
-    # Sample from relevant_lexicon
-    for rule in relevant_lexicon:
-        if rule.lhs[0].predicate() in unseen_meaning:
-            unseen_meaning.remove(rule.lhs[0].predicate())
-        p += 1/(float(rule.cost)*Z)
-        if p >= thresh:
-            return rule.lhs[0].predicate()
-    if len(unseen_meaning) > 0:
-        # No sample yet => explore unseen meanings
-        return choice(unseen_meaning)
-    else:
-        # or if every meaning is explored, sample again without no exploration
-        return sample_lexicon(human, formula_class, universal_meaning, 0)
-
-universal_meaning = [\
+UNIVERSAL_MEANING = [\
     PropertyFormula('snake',1), \
     PropertyFormula('pig',1), \
     PropertyFormula('horse',1), \
@@ -47,7 +17,7 @@ universal_meaning = [\
     RelationFormula('noticed',1,2) \
 ]
 
-templates = [\
+TEMPLATES = [\
         [(PropertyFormula, 1), (RelationFormula, 1, 2), (PropertyFormula, 2)],\
         [(PropertyFormula, 1), (RelationFormula, 2, 1), (PropertyFormula, 2)],\
         [(PropertyFormula, 1), (RelationFormula, 1, 1)], \
@@ -70,27 +40,74 @@ templates = [\
         [(PropertyFormula, 1), (RelationFormula, 1, 1)] \
 ]
 
-exploration_rate = 0.2
-number_intentions = 10
-number_iterations = 25
 
-# Init first (random) parent
-parent = Parent()
-for iteration in range(number_iterations):
-    print "[%s] Start iteration %d" % (datetime.today().time(), iteration)
-    child = Child()
-    
-    for i in range(number_intentions):
-        template = choice(templates)
-        intention = FormulaSet()
-        for placeholder in template:
-            predicate = sample_lexicon(parent, placeholder[0], \
-                    universal_meaning, exploration_rate)
-            intention.append(placeholder[0](predicate, *placeholder[1:]))
-        parent.communicate(intention, child)
-    print "[%s] Child fully educated, grammar size: %d" % \
-            (datetime.today().time(), len(child.grammar))
-    # Grow up
-    parent = child.grow_up()
-    print "[%s] Child grown up, end of iteration %d" % \
-            (datetime.today().time(), iteration)
+class World:
+
+    def __init__(self, exploration_rate, seed_value = None):
+        self.exploration_rate = exploration_rate
+        self.seed_value = seed_value
+        seed(seed_value)
+
+    def sample_lexicon(self, human, formula_class, 
+                       exploration_rate = None):
+        if not exploration_rate:
+            exploration_rate = self.exploration_rate
+
+        thresh = random()
+        
+        relevant_lexicon = [ rule for rule in human.grammar if \
+                isinstance(rule, PCFGLexicalRule) and \
+                isinstance(rule.lhs[0], formula_class)]
+
+        # Normalized sum
+        norm_sum = float(sum([1/float(rule.cost) for rule in relevant_lexicon]))
+        norm_sum *= (1+exploration_rate)
+
+        unseen_meaning = [f.predicate() for f in UNIVERSAL_MEANING \
+                if isinstance(f, formula_class)]
+
+        # Cumulative probability density
+        cum_prob = 0
+
+        # Sample from relevant_lexicon
+        for rule in relevant_lexicon:
+            if rule.lhs[0].predicate() in unseen_meaning:
+                unseen_meaning.remove(rule.lhs[0].predicate())
+            cum_prob += 1/(float(rule.cost)*norm_sum)
+            if cum_prob >= thresh:
+                return rule.lhs[0].predicate()
+        if len(unseen_meaning) > 0:
+            # No sample yet => explore unseen meanings
+            return choice(unseen_meaning)
+        else:
+            # or if every meaning is explored, 
+            # sample again without exploration
+            return self.sample_lexicon(human, formula_class, 0)
+
+    def iterated_learning(self, number_intentions, number_iterations): 
+        # Init first (random) parent
+        parent = Parent(seed_value = self.seed_value)
+        for iteration in range(number_iterations):
+            print "[%s] Start iteration %d" % \
+                  (datetime.today().time(), iteration)
+            child = Child(seed_value = self.seed_value)
+            
+            for _ in range(number_intentions):
+                template = choice(TEMPLATES)
+                intention = FormulaSet()
+                for placeholder in template:
+                    predicate = self.sample_lexicon(parent, placeholder[0])
+                    intention.append(placeholder[0](predicate,
+                                                    *placeholder[1:]))
+                parent.communicate(intention, child)
+            print "[%s] Child fully educated, grammar size: %d" % \
+                    (datetime.today().time(), len(child.grammar))
+            # Grow up
+            parent = child.grow_up()
+            print "[%s] Child grown up, end of iteration %d" % \
+                    (datetime.today().time(), iteration)
+
+
+if __name__ == '__main__':
+    WORLD = World(0.2, 0) # exploration rate = 0.2, seed = 0
+    WORLD.iterated_learning(10, 25) # #intentions = 10, #iterations = 25
