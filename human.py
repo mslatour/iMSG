@@ -1,4 +1,5 @@
-from pcfg import *
+from pcfg import PCFGLexicalRule, Grammar
+from formula import FormulaSet
 from random import sample, randint
 from datetime import datetime
 import string
@@ -66,7 +67,7 @@ class Parent(Human):
 
     
     def make_up_word(self):
-        return "".join(sample(string.letters, randint(4,8)))
+        return "".join(sample(string.letters, randint(4, 8)))
 
     def communicate(self, meaning, child):
         words = []

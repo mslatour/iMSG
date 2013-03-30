@@ -1,8 +1,8 @@
 from random import random, choice
-from formula import *
+from formula import RelationFormula, PropertyFormula, FormulaSet
 from datetime import datetime
-from pcfg import *
-from human import *
+from pcfg import PCFGLexicalRule
+from human import Child, Parent
 
 def sample_lexicon(human, formula_class, universal_meaning, exploration_rate):
     thresh = random()

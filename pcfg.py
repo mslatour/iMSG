@@ -1,4 +1,4 @@
-from formula import *
+from formula import FormulaSet, ArgumentMap
 
 COST_AMAP = 0.05
 COST_MERGE = 1.5
