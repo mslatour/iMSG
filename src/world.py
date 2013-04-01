@@ -112,16 +112,16 @@ class World:
             diff = len(set(parent.grammar) - set(child.grammar))
             grammar_differences.append(diff)
 
-            print "[%s] Child fully educated, grammar size: %d" % \
-                    (datetime.today().time(), len(child.grammar))
-            # Grow up
-            parent = child.grow_up()
-            print "[%s] Child grown up, end of iteration %d" % \
-                    (datetime.today().time(), iteration)
-            print 'parent costs: \n%s' % parent_costs
-            print 'child costs: \n%s' % child_costs
-            print 'child grammar sizes: \n%s' % child_grammar_sizes
-            print 'grammar differences: \n%s' % grammar_differences
+        print "[%s] Child fully educated, grammar size: %d" % \
+                (datetime.today().time(), len(child.grammar))
+        # Grow up
+        parent = child.grow_up()
+        print "[%s] Child grown up, end of iteration %d" % \
+                (datetime.today().time(), iteration)
+        print 'parent costs: \n%s' % parent_costs
+        print 'child costs: \n%s' % child_costs
+        print 'child grammar sizes: \n%s' % child_grammar_sizes
+        print 'grammar differences: \n%s' % grammar_differences
 
 if __name__ == '__main__':
     WORLD = World(0.2, 0)

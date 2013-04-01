@@ -1,5 +1,4 @@
 from pcfg import PCFGLexicalRule, Grammar
-from formula import FormulaSet
 from random import sample, randint
 from datetime import datetime
 import string
@@ -84,6 +83,13 @@ class Parent:
                         PCFGLexicalRule(sub_meaning, (word,)))
 
             words.append(word)
+
+        parse_forest, costs = viterbi.make_forest(words, meaning, self.grammar)
+        span = (0, len(words))
+        for top in parse_forest[span]: # find parse that matches the meaning
+            if top == meaning:
+                self.cost = costs[(top,)+span]
+                break
 
         print "[%s] Communicate (%s,%s)" % \
                 (datetime.today().time(), words, meaning)
