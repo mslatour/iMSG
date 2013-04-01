@@ -1,32 +1,18 @@
 from pcfg import PCFGLexicalRule, Grammar
 from formula import FormulaSet
-from random import sample, randint, seed
+from random import sample, randint
 from datetime import datetime
 import string
 import viterbi
 
-class Human:
-    """
-    :param grammar
-    """
-    def __init__(self, grammar = None, seed_value = None):
-        self.grammar = grammar if grammar is not None else Grammar()
-        self.seed_value = seed_value
-        seed(seed_value)
-        self.cost = 0
 
-    def set_seed(self, seed_value):
-        self.seed_value = seed_value
-        seed(seed_value)
+class Child():
 
-    def get_last_cost(self):
-        return self.cost
-
-
-class Child(Human):
-
-    def __init__(self, grammar = None, seed_value = None):
-        Human.__init__(self, grammar, seed_value)
+    def __init__(self, grammar = None):
+        if grammar == None:
+            self.grammar = Grammar()
+        else:
+            self.grammar = grammar
         
     def observe(self, (words, meaning)):
         parse_forest, costs = viterbi.make_forest(words, meaning, self.grammar)
@@ -35,6 +21,7 @@ class Child(Human):
         for top in parse_forest[span]: # find parse that matches the meaning
             if top == meaning:
                 correct_parse_cost = costs[(top,)+span]
+                self.cost = correct_parse_cost
                 reinforced_rules = self.reinforce(parse_forest, costs, 
                                                   top, span)
                 break
@@ -65,13 +52,16 @@ class Child(Human):
         return rules
 
     def grow_up(self):
-        return Parent(self.grammar, self.seed_value+1)
+        return Parent(self.grammar)
 
 
-class Parent(Human):
+class Parent():
 
-    def __init__(self, grammar = None, seed_value = None):
-        Human.__init__(self, grammar, seed_value)
+    def __init__(self, grammar = None):
+        if grammar == None:
+            self.grammar = Grammar()
+        else:
+            self.grammar = grammar
     
     def make_up_word(self):
         return "".join(sample(string.letters, randint(4, 8)))

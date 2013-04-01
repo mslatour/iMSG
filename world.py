@@ -45,7 +45,6 @@ class World:
 
     def __init__(self, exploration_rate, seed_value = None):
         self.exploration_rate = exploration_rate
-        self.seed_value = seed_value
         seed(seed_value)
 
     def sample_lexicon(self, human, formula_class, 
@@ -84,13 +83,18 @@ class World:
             # sample again without exploration
             return self.sample_lexicon(human, formula_class, 0)
 
-    def iterated_learning(self, number_intentions, number_iterations): 
+    def iterated_learning(self, number_intentions, number_iterations):
+        parent_costs = []
+        child_costs = []
+        child_grammar_sizes = []
+        grammar_differences = []
         # Init first (random) parent
-        parent = Parent(seed_value = self.seed_value)
+        parent = Parent()
         for iteration in range(number_iterations):
             print "[%s] Start iteration %d" % \
                   (datetime.today().time(), iteration)
-            child = Child(seed_value = self.seed_value)
+
+            child = Child()
             
             for _ in range(number_intentions):
                 template = choice(TEMPLATES)
@@ -102,14 +106,23 @@ class World:
 
                 parent.communicate(intention, child)
 
+            parent_costs.append(parent.cost)
+            child_costs.append(child.cost)
+            child_grammar_sizes.append(len(child.grammar))
+            diff = len(set(parent.grammar) - set(child.grammar))
+            grammar_differences.append(diff)
+
             print "[%s] Child fully educated, grammar size: %d" % \
                     (datetime.today().time(), len(child.grammar))
             # Grow up
             parent = child.grow_up()
             print "[%s] Child grown up, end of iteration %d" % \
                     (datetime.today().time(), iteration)
-
+            print 'parent costs: \n%s' % parent_costs
+            print 'child costs: \n%s' % child_costs
+            print 'child grammar sizes: \n%s' % child_grammar_sizes
+            print 'grammar differences: \n%s' % grammar_differences
 
 if __name__ == '__main__':
-    WORLD = World(0.2, 2)
-    WORLD.iterated_learning(10, 25)
+    WORLD = World(0.2, 0)
+    WORLD.iterated_learning(10, 10)

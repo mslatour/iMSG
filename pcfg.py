@@ -93,22 +93,24 @@ class Grammar:
         return self._rules
         
     def expanded_grammar(self, rhs, rhs_costs):
+        # reduce search space
         best_rules = []
         best_cost = float('inf')
-        max_sub_cost = len(rhs) * COST_SUBSTITUTION + \
-                       sum(i for i in rhs_costs)
         for rule in self.rules():
             if len(rule.rhs) != len(rhs):
                 continue
+            # calculate cost of using this rule
+            cost = rule.cost
+            for i in xrange(len(rhs)):
+                if rule.rhs[i].primitive() != rhs[i].primitive():
+                    cost += COST_SUBSTITUTION + rhs_costs[i]
 
-            if rule.cost + max_sub_cost < best_cost:
+            if cost < best_cost:
                 best_rules = [rule]
-                best_cost = rule.cost
-            elif rule.cost <= best_cost + max_sub_cost:
+            elif cost == best_cost:
                 best_rules.append(rule)
-                if rule.cost < best_cost:
-                    best_cost = rule.cost
-        
+
+        # expand rules
         expanded_rules = {}
         for rule in best_rules:
             temp_rules = rule.expand(rhs, rhs_costs)
@@ -116,6 +118,7 @@ class Grammar:
                 if temp.cost < expanded_rules.get(temp, float('inf')):
                     expanded_rules[temp] = temp.cost
 
+        # merge rules
         rule_gen = self.create_rule_generator(rhs, rhs_costs)
         for rule in rule_gen:
             if rule.cost < expanded_rules.get(rule, float('inf')):
@@ -148,6 +151,9 @@ class Grammar:
             return NotImplemented
 
     def __eq__(self, other):
+        if not isinstance(other, Grammar):
+            return False
+
         return set(self.rules()) == set(other.rules())
 
     def __lt__(self, other):
