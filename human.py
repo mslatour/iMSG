@@ -13,6 +13,8 @@ class Child():
             self.grammar = Grammar()
         else:
             self.grammar = grammar
+
+        self.cost = 0
         
     def observe(self, (words, meaning)):
         parse_forest, costs = viterbi.make_forest(words, meaning, self.grammar)
@@ -62,6 +64,8 @@ class Parent():
             self.grammar = Grammar()
         else:
             self.grammar = grammar
+
+        self.cost = 0
     
     def make_up_word(self):
         return "".join(sample(string.letters, randint(4, 8)))
