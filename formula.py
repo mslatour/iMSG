@@ -120,6 +120,9 @@ class FormulaSet:
         return hash(tuple(self._formulas))
 
     def __eq__(self, other):
+        if not isinstance(other, FormulaSet):
+            return False
+
         return len(set(self)&set(other)) == len(other)
     
     def __lt__(self, other):

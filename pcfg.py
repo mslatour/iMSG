@@ -14,11 +14,16 @@ class PCFGRule:
     :param cost - Cost of using this rule
     :param amap - Argument mappings used to go from RHS to LHS
     """
-    def __init__(self, rhs, cost, amap=None):
+    def __init__(self, rhs, cost, amap=None, lhs=None):
         self.rhs = rhs
-        self.amap = amap if amap != None else tuple([ArgumentMap()]*len(rhs))
-        self.lhs = FormulaSet([x.apply_argument_map(self.amap[i]) \
-                for i, x in enumerate(rhs)])
+        if lhs != None:
+            self.amap = ArgumentMap()
+            self.lhs = lhs
+        else:            
+            self.amap = amap if amap != None else tuple([ArgumentMap()]*len(rhs))
+            self.lhs = FormulaSet([x.apply_argument_map(self.amap[i]) \
+                    for i, x in enumerate(rhs)])
+
         self.cost = cost
 
     def __eq__(self, item):
@@ -72,22 +77,22 @@ class PCFGLexicalRule(PCFGRule):
     """
     :param lhs - Left-hand-side of the rule (formulaset)
     :param rhs - Right-hand-side of the rule (tuple of one string)
-    :param cost - Cost of using this rule
     """
 
     def __init__(self, lhs, rhs, cost=COST_NEW):
-        self.lhs = lhs
-        self.rhs = rhs
-        self.cost = cost
+        PCFGRule.__init__(self, rhs, cost, None, lhs)
 
     def expand(self, rhs, costs):
-        return [self]
+        return []
 
 class Grammar:
     _rules = []
 
-    def __init__(self, rules=[]):
-        self._rules = rules
+    def __init__(self, rules = None):
+        if rules == None:
+            self._rules = []
+        else:
+            self._rules = rules
 
     def rules(self):
         return self._rules
@@ -179,6 +184,9 @@ class Grammar:
   
     def __setitem__(self, key, value):
         self._rules[key] = value
+
+    def __delitem__(self, value):
+        self._rules.remove(value)
 
     def __iter__(self):
         return self._rules.__iter__()

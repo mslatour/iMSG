@@ -6,7 +6,7 @@ import string
 import viterbi
 
 
-class Child():
+class Child:
 
     def __init__(self, grammar = None):
         if grammar == None:
@@ -57,7 +57,7 @@ class Child():
         return Parent(self.grammar)
 
 
-class Parent():
+class Parent:
 
     def __init__(self, grammar = None):
         if grammar == None:
