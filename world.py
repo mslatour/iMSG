@@ -99,7 +99,9 @@ class World:
                     predicate = self.sample_lexicon(parent, placeholder[0])
                     intention.append(placeholder[0](predicate,
                                                     *placeholder[1:]))
+
                 parent.communicate(intention, child)
+
             print "[%s] Child fully educated, grammar size: %d" % \
                     (datetime.today().time(), len(child.grammar))
             # Grow up
@@ -109,5 +111,5 @@ class World:
 
 
 if __name__ == '__main__':
-    WORLD = World(0.2, 0) # exploration rate = 0.2, seed = 0
-    WORLD.iterated_learning(10, 25) # #intentions = 10, #iterations = 25
+    WORLD = World(0.2, 2)
+    WORLD.iterated_learning(10, 25)

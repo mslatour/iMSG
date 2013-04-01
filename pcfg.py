@@ -48,7 +48,7 @@ class PCFGRule:
         for i in range(len(rhs)):
             if self.rhs[i].primitive() != rhs[i].primitive():
                 # Copy current rhs into a list
-                new_rhs = list(self.rhs)
+                new_rhs = list(rule.rhs)
                 # Alter the rhs element
                 new_rhs[i] = rhs[i]
                 # Create a new PCFG rule
@@ -93,8 +93,23 @@ class Grammar:
         return self._rules
         
     def expanded_grammar(self, rhs, rhs_costs):
-        expanded_rules = {}
+        best_rules = []
+        best_cost = float('inf')
+        max_sub_cost = len(rhs) * COST_SUBSTITUTION
         for rule in self.rules():
+            if len(rule.rhs) != len(rhs):
+                continue
+
+            if rule.cost + max_sub_cost < best_cost:
+                best_rules = [rule]
+                best_cost = rule.cost
+            elif rule.cost <= best_cost + max_sub_cost:
+                best_rules.append(rule)
+                if rule.cost < best_cost:
+                    best_cost = rule.cost
+        
+        expanded_rules = {}
+        for rule in best_rules:
             temp_rules = rule.expand(rhs, rhs_costs)
             for temp in temp_rules:
                 if temp.cost < expanded_rules.get(temp, float('inf')):
@@ -111,12 +126,19 @@ class Grammar:
         amapset = ArgumentMap.generate_amap_set(len(rhs))
         return (PCFGRule(rhs, sum(costs)+COST_MERGE, amap) for amap in amapset)
 
-    def inverse(self):
-        inverse = {}
+    def rhs_mapping(self):
+        mapping = {}
         for rule in self.rules():
-            inverse.setdefault(rule.rhs, []).append((rule.lhs, rule.cost))
+            mapping.setdefault(rule.rhs, []).append((rule.lhs, rule.cost))
 
-        return inverse
+        return mapping
+
+    def lhs_mapping(self):
+        mapping = {}
+        for rule in self.rules():
+            mapping.setdefault(rule.lhs, []).append((rule.rhs, rule.cost))
+
+        return mapping
 
     def __add__(self, other):
         if isinstance(other, Grammar):

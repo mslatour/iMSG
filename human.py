@@ -65,10 +65,11 @@ class Child(Human):
         return rules
 
     def grow_up(self):
-        return Parent(self.grammar)
+        return Parent(self.grammar, self.seed_value+1)
 
 
 class Parent(Human):
+
     def __init__(self, grammar = None, seed_value = None):
         Human.__init__(self, grammar, seed_value)
     
@@ -77,16 +78,17 @@ class Parent(Human):
 
     def communicate(self, meaning, child):
         words = []
-        for formula in meaning:
-            word = None
-            for rule in self.grammar:
-                if isinstance(rule, PCFGLexicalRule) and rule.lhs[0] == formula:
-                    word = rule.rhs
-                    break
-            if word is None:
+        lhs_mapping = self.grammar.lhs_mapping()
+        for i in xrange(len(meaning)):
+            sub_meaning = meaning[i:i+1]
+            if sub_meaning in lhs_mapping:
+                left_child, _ = lhs_mapping[sub_meaning][0]
+                word = left_child[0]
+            else:
                 word = self.make_up_word()
                 self.grammar.append(\
-                        PCFGLexicalRule(FormulaSet([formula]), word))
+                        PCFGLexicalRule(sub_meaning, (word,)))
+
             words.append(word)
 
         print "[%s] Communicate (%s,%s)" % \
