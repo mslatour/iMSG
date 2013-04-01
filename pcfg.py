@@ -95,7 +95,8 @@ class Grammar:
     def expanded_grammar(self, rhs, rhs_costs):
         best_rules = []
         best_cost = float('inf')
-        max_sub_cost = len(rhs) * COST_SUBSTITUTION
+        max_sub_cost = len(rhs) * COST_SUBSTITUTION + \
+                       sum(i for i in rhs_costs)
         for rule in self.rules():
             if len(rule.rhs) != len(rhs):
                 continue
