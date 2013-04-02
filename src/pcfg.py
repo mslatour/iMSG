@@ -134,12 +134,16 @@ class Grammar:
             temp_rules = rule.expand(rhs, rhs_costs)
             for temp in temp_rules:
                 if temp.cost < expanded_rules.get(temp, float('inf')):
+                    if temp in expanded_rules:
+                        del expanded_rules[temp]
                     expanded_rules[temp] = temp.cost
 
         # merge rules
         rule_gen = self.create_rule_generator(rhs, rhs_costs)
         for rule in rule_gen:
             if rule.cost < expanded_rules.get(rule, float('inf')):
+                if rule in expanded_rules:
+                    del expanded_rules[rule]
                 expanded_rules[rule] = rule.cost
 
         return Grammar(expanded_rules.keys())
