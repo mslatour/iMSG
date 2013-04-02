@@ -14,6 +14,7 @@ class Child:
             self.grammar = grammar
 
         self.cost = 0
+        self.used_rules = []
         
     def observe(self, (words, meaning)):
         parse_forest, costs = viterbi.make_forest(words, meaning, self.grammar)
@@ -25,6 +26,7 @@ class Child:
                 self.cost = correct_parse_cost
                 reinforced_rules = self.reinforce(parse_forest, costs, 
                                                   top, span)
+                self.used_rules = reinforced_rules
                 break
 
         for rule in reinforced_rules: # add reinforced rules to grammar
@@ -65,11 +67,13 @@ class Parent:
             self.grammar = grammar
 
         self.cost = 0
+        self.used_rules = []
     
     def make_up_word(self):
         return "".join(sample(string.letters, randint(4, 8)))
 
     def communicate(self, meaning, child):
+        # create words that correspond to meaning
         words = []
         lhs_mapping = self.grammar.lhs_mapping()
         for i in xrange(len(meaning)):
@@ -84,11 +88,14 @@ class Parent:
 
             words.append(word)
 
+        # find parse that matches the meaning
         parse_forest, costs = viterbi.make_forest(words, meaning, self.grammar)
         span = (0, len(words))
-        for top in parse_forest[span]: # find parse that matches the meaning
+        for top in parse_forest[span]:
             if top == meaning:
                 self.cost = costs[(top,)+span]
+                rules = viterbi.get_rules(parse_forest, costs, top, span)
+                self.used_rules = rules
                 break
 
         print "[%s] Communicate (%s,%s)" % \
