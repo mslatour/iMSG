@@ -149,6 +149,15 @@ class Grammar:
 
         return mapping
 
+    def lexicon(self):
+        mapping = {}
+        for rule in self.rules():
+            if isinstance(rule, PCFGLexicalRule):
+                mapping.setdefault(rule.lhs[0].predicate(), []).append((rule.rhs, rule.cost))
+
+        return mapping
+
+
     def __add__(self, other):
         if isinstance(other, Grammar):
             return Grammar(self.rules() + other.rules())
