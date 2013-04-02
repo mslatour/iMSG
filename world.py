@@ -48,8 +48,8 @@ universal_meaning = [\
 ]
 
 templates = [\
-        [(PropertyFormula, 1), (RelationFormula, 1, 2), (PropertyFormula, 2)],\
-        [(PropertyFormula, 1), (RelationFormula, 2, 1), (PropertyFormula, 2)],\
+#        [(PropertyFormula, 1), (RelationFormula, 1, 2), (PropertyFormula, 2)],\
+#        [(PropertyFormula, 1), (RelationFormula, 2, 1), (PropertyFormula, 2)],\
         [(PropertyFormula, 1), (RelationFormula, 1, 1)], \
         [(PropertyFormula, 1), (RelationFormula, 1, 1)], \
         [(PropertyFormula, 1), (RelationFormula, 1, 1)], \
@@ -72,7 +72,7 @@ templates = [\
 
 exploration_rate = 0.2
 number_intentions = 10
-number_iterations = 25
+number_iterations = 100
 
 # Init first (random) parent
 parent = Parent()
@@ -88,8 +88,9 @@ for iteration in range(number_iterations):
                     universal_meaning, exploration_rate)
             intention.append(placeholder[0](predicate, *placeholder[1:]))
         parent.communicate(intention, child)
-    print "[%s] Child fully educated, grammar size: %d" % \
-            (datetime.today().time(), len(child.grammar))
+    cost = sum([rule.cost for rule in child.grammar])
+    print "[%s] Child fully educated, grammar size: %d, grammar costs: %d" % \
+            (datetime.today().time(), len(child.grammar), cost)
     # Grow up
     parent = child.grow_up()
     print "[%s] Child grown up, end of iteration %d" % \
