@@ -1,11 +1,13 @@
 from formula import FormulaSet, ArgumentMap
 
+DEBUG = True
+
 COST_AMAP = 0.05
 COST_MERGE = 1.5
-COST_SUBSTITUTION = 0.1
+COST_SUBSTITUTION = 0#.1
 COST_NEW = 1.0
-REINFORCEMENT_RATE = 0.1
-DISCOURAGING_RATE = 0.1
+REINFORCEMENT_RATE = 0#.1
+DISCOURAGING_RATE = 0#.1
 
 class PCFGRule:
     """
@@ -14,8 +16,12 @@ class PCFGRule:
     :param cost - Cost of using this rule
     :param amap - Argument mappings used to go from RHS to LHS
     """
-    def __init__(self, rhs, cost, amap=None, lhs=None):
+    def __init__(self, rhs, cost, amap=None, lhs=None, msg=None):
         self.rhs = rhs
+        if msg is not None:
+            self.msg = msg
+        else:
+            self.msg = ""
         if lhs != None:
             self.amap = ArgumentMap()
             self.lhs = lhs
@@ -33,7 +39,11 @@ class PCFGRule:
         return hash((self.lhs, self.rhs))
 
     def __str__(self):
-        return "%s --> %s [%f]" % (self.lhs, self.rhs, self.cost)
+        if DEBUG:
+            return "%s --> %s [%f] {%s}" % (self.lhs, self.rhs, self.cost, self.msg)
+        else:
+            return "%s --> %s [%f]" % (self.lhs, self.rhs, self.cost)
+            
 
     def __repr__(self):
         return str(self)
@@ -58,7 +68,8 @@ class PCFGRule:
                 new_rhs[i] = rhs[i]
                 # Create a new PCFG rule
                 rule = PCFGRule(tuple(new_rhs), \
-                        rule.cost+COST_SUBSTITUTION+costs[i], self.amap)
+                        rule.cost+COST_SUBSTITUTION+costs[i], self.amap, \
+                        msg=("SUB {%s, %s}" % (self.rhs, rhs)))
 
         # Create set of possible argument mappings
         amapset = ArgumentMap.generate_amap_set(len(rhs))
@@ -69,7 +80,7 @@ class PCFGRule:
         # Generate all argument variations
         for amap in amapset:
             cost = rule.cost + (0 if amap == self.amap else COST_AMAP)
-            pcfgs.append(PCFGRule(rhs, cost, amap))
+            pcfgs.append(PCFGRule(rhs, cost, amap, msg = rule.msg))
 
         return pcfgs
 
@@ -79,8 +90,8 @@ class PCFGLexicalRule(PCFGRule):
     :param rhs - Right-hand-side of the rule (tuple of one string)
     """
 
-    def __init__(self, lhs, rhs, cost=COST_NEW):
-        PCFGRule.__init__(self, rhs, cost, None, lhs)
+    def __init__(self, lhs, rhs, cost=COST_NEW, msg=None):
+        PCFGRule.__init__(self, rhs, cost, None, lhs, msg)
 
     def expand(self, rhs, costs):
         return []
@@ -133,7 +144,7 @@ class Grammar:
 
     def create_rule_generator(self, rhs, costs):
         amapset = ArgumentMap.generate_amap_set(len(rhs))
-        return (PCFGRule(rhs, sum(costs)+COST_MERGE, amap) for amap in amapset)
+        return (PCFGRule(rhs, sum(costs)+COST_MERGE, amap, msg=("MERGE {%s}" % (rhs,))) for amap in amapset)
 
     def rhs_mapping(self):
         mapping = {}

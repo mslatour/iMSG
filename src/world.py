@@ -4,6 +4,7 @@ from datetime import datetime
 from pcfg import PCFGLexicalRule
 from human import Child, Parent
 
+OPT_SAMPLE_MEANING = True
 
 UNIVERSAL_MEANING = [\
     PropertyFormula('cat',1), \
@@ -34,15 +35,16 @@ UNIVERSAL_MEANING = [\
 ]
 
 TEMPLATES = [\
-        [(PropertyFormula, 1), (RelationFormula, 1, 2), (RelationFormula, 1, 2), (PropertyFormula, 2)],\
-        [(PropertyFormula, 1), (RelationFormula, 1, 2), (PropertyFormula, 2)],\
-        [(PropertyFormula, 1), (RelationFormula, 1, 2), (PropertyFormula, 2)],\
-        [(PropertyFormula, 1), (RelationFormula, 1, 2), (PropertyFormula, 2)],\
-        [(PropertyFormula, 1), (RelationFormula, 2, 1), (PropertyFormula, 2)],\
-        [(PropertyFormula, 1), (RelationFormula, 1, 2)], \
+#        [(PropertyFormula, 1), (RelationFormula, 1, 2), (RelationFormula, 1, 2), (PropertyFormula, 2)],\
+#        [(PropertyFormula, 1), (RelationFormula, 1, 2), (PropertyFormula, 2)],\
+#        [(PropertyFormula, 1), (RelationFormula, 1, 2), (PropertyFormula, 2)],\
+#        [(PropertyFormula, 1), (RelationFormula, 1, 2), (PropertyFormula, 2)],\
+#        [(PropertyFormula, 1), (RelationFormula, 2, 1), (PropertyFormula, 2)],\
+#        [(PropertyFormula, 1), (RelationFormula, 1, 2)], \
         [(PropertyFormula, 1), (RelationFormula, 2, 1)] \
 ]
 
+INTENTIONS = []
 
 class World:
 
@@ -63,7 +65,6 @@ class World:
 
         # Normalized sum
         norm_sum = float(sum([1/float(rule.cost) for rule in relevant_lexicon]))
-        norm_sum *= (1+exploration_rate)
 
         unseen_meaning = [f.predicate() for f in UNIVERSAL_MEANING \
                 if isinstance(f, formula_class)]
@@ -71,11 +72,12 @@ class World:
         # Cumulative probability density
         cum_prob = 0
 
+        relevant_lexicon = []
         # Sample from relevant_lexicon
         for rule in relevant_lexicon:
             if rule.lhs[0].predicate() in unseen_meaning:
                 unseen_meaning.remove(rule.lhs[0].predicate())
-            cum_prob += 1/(float(rule.cost)*norm_sum)
+            cum_prob += (1-exploration_rate)/(float(rule.cost)*norm_sum)
             if cum_prob >= thresh:
                 return rule.lhs[0].predicate()
         if len(unseen_meaning) > 0:
@@ -84,6 +86,7 @@ class World:
         else:
             # or if every meaning is explored, 
             # sample again without exploration
+            self.exploration_rate = 0
             return self.sample_lexicon(human, formula_class, 0)
 
     def iterated_learning(self, number_intentions, number_iterations):
@@ -103,14 +106,19 @@ class World:
             child = Child() # create new child
             
             for _ in xrange(number_intentions):
-                template = choice(TEMPLATES)
-                intention = FormulaSet()
-                for placeholder in template:
-                    predicate = self.sample_lexicon(parent, placeholder[0])
-                    intention.append(placeholder[0](predicate,
-                                                    *placeholder[1:]))
+                if OPT_SAMPLE_MEANING:
+                    template = choice(TEMPLATES)
+                    intention = FormulaSet()
+                    for placeholder in template:
+                        predicate = self.sample_lexicon(parent, placeholder[0])
+                        intention.append(placeholder[0](predicate,
+                                                        *placeholder[1:]))
+                else:
+                    intention = choice(INTENTIONS)
 
                 parent.communicate(intention, child)
+                print "[COST:%d] parent: %f child: %f" % (iteration, parent.cost, child.cost)
+                print child.grammar
 
                 parent_c += parent.cost
                 child_c += child.cost
@@ -131,8 +139,8 @@ class World:
             # Grow up
             parent = child.grow_up()
 
-        print "[%s] Child grown up, end of iteration %d" % \
-                (datetime.today().time(), iteration)
+            print "[%s] Child grown up, end of iteration %d" % \
+                    (datetime.today().time(), iteration)
         print 'parent costs: \n%s' % parent_costs
         print 'child costs: \n%s' % child_costs
         print 'parent grammar sizes: \n%s' % parent_sizes
@@ -143,5 +151,5 @@ class World:
         print 'Accuracies: \n%s' % accuracies
 
 if __name__ == '__main__':
-    WORLD = World(0.2, 1)
-    WORLD.iterated_learning(10, 100)
+    WORLD = World(1, 1)
+    WORLD.iterated_learning(10, 30)
