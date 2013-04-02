@@ -1,4 +1,5 @@
 from pcfg import PCFGLexicalRule, Grammar
+from formula import FormulaSet
 from random import sample, randint
 from datetime import datetime
 import string
@@ -20,6 +21,7 @@ class Child:
         parse_forest, costs = viterbi.make_forest(words, meaning, self.grammar)
         correct_parse_cost = None
         span = (0, len(words))
+        reinforced_rules = []
         for top in parse_forest[span]: # find parse that matches the meaning
             if top == meaning:
                 correct_parse_cost = costs[(top,)+span]
@@ -28,6 +30,15 @@ class Child:
                                                   top, span)
                 self.used_rules = reinforced_rules
                 break
+
+        if len(reinforced_rules) == 0:
+            print '[SHOUT] reinforced_rules is empty:'
+            print "#"*30
+            print meaning
+            print "#"*30
+            print parse_forest
+            print "#"*30
+            print self.grammar
 
         for rule in reinforced_rules: # add reinforced rules to grammar
             if not rule in self.grammar:
@@ -75,19 +86,20 @@ class Parent:
     def communicate(self, meaning, child):
         # create words that correspond to meaning
         words = []
-        lhs_mapping = self.grammar.lhs_mapping()
-        for i in xrange(len(meaning)):
-            sub_meaning = meaning[i:i+1]
-            if sub_meaning in lhs_mapping:
-                left_child, _ = lhs_mapping[sub_meaning][0]
+        lexicon = self.grammar.lexicon()
+        for formula in meaning:
+            if formula.predicate() in lexicon:
+                left_child, _ = lexicon[formula.predicate()][0]
                 word = left_child[0]
             else:
                 word = self.make_up_word()
                 self.grammar.append(\
-                        PCFGLexicalRule(sub_meaning, (word,)))
+                        PCFGLexicalRule(FormulaSet([formula]), (word,)))
 
             words.append(word)
 
+        print "[%s] Verbalizing (%s,%s)" % \
+                (datetime.today().time(), words, meaning)
         # find parse that matches the meaning
         parse_forest, costs = viterbi.make_forest(words, meaning, self.grammar)
         span = (0, len(words))
