@@ -32,26 +32,11 @@ UNIVERSAL_MEANING = [\
 ]
 
 TEMPLATES = [\
+        [(PropertyFormula, 1), (RelationFormula, 1, 2), (RelationFormula, 1, 2), (PropertyFormula, 2)],\
         [(PropertyFormula, 1), (RelationFormula, 1, 2), (PropertyFormula, 2)],\
         [(PropertyFormula, 1), (RelationFormula, 2, 1), (PropertyFormula, 2)],\
-        [(PropertyFormula, 1), (RelationFormula, 1, 1)], \
-        [(PropertyFormula, 1), (RelationFormula, 1, 1)], \
-        [(PropertyFormula, 1), (RelationFormula, 1, 1)], \
-        [(PropertyFormula, 1), (RelationFormula, 1, 1)], \
-        [(PropertyFormula, 1), (RelationFormula, 1, 1)], \
-        [(PropertyFormula, 1), (RelationFormula, 1, 1)], \
-        [(PropertyFormula, 1), (RelationFormula, 1, 1)], \
-        [(PropertyFormula, 1), (RelationFormula, 1, 1)], \
-        [(PropertyFormula, 1), (RelationFormula, 1, 1)], \
-        [(PropertyFormula, 1), (RelationFormula, 1, 1)], \
-        [(PropertyFormula, 1), (RelationFormula, 1, 1)], \
-        [(PropertyFormula, 1), (RelationFormula, 1, 1)], \
-        [(PropertyFormula, 1), (RelationFormula, 1, 1)], \
-        [(PropertyFormula, 1), (RelationFormula, 1, 1)], \
-        [(PropertyFormula, 1), (RelationFormula, 1, 1)], \
-        [(PropertyFormula, 1), (RelationFormula, 1, 1)], \
-        [(PropertyFormula, 1), (RelationFormula, 1, 1)], \
-        [(PropertyFormula, 1), (RelationFormula, 1, 1)] \
+        [(PropertyFormula, 1), (RelationFormula, 1, 2)], \
+        [(PropertyFormula, 1), (RelationFormula, 2, 1)] \
 ]
 
 
@@ -150,5 +135,5 @@ class World:
         print 'Accuracies: \n%s' % accuracies
 
 if __name__ == '__main__':
-    WORLD = World(0.2, 0)
-    WORLD.iterated_learning(3, 10)
+    WORLD = World(0.2, 1)
+    WORLD.iterated_learning(10, 100)
