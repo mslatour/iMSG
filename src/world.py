@@ -19,13 +19,15 @@ UNIVERSAL_MEANING = [\
     PropertyFormula('snake',1), \
     PropertyFormula('squirrel',1), \
 
-    RelationFormula('bite',1,2), \
+    RelationFormula('ate',1,2), \
+    RelationFormula('bit',1,2), \
     RelationFormula('chased',1,2), \
     RelationFormula('insulted',1,2), \
     RelationFormula('kissed',1,2), \
     RelationFormula('liked',1,2), \
     RelationFormula('noticed',1,2), \
     RelationFormula('praised',1,2), \
+    RelationFormula('punched',1,2), \
     RelationFormula('shoved',1,2), \
     RelationFormula('slapped',1,2), \
     RelationFormula('tickled',1,2) \
@@ -33,6 +35,8 @@ UNIVERSAL_MEANING = [\
 
 TEMPLATES = [\
         [(PropertyFormula, 1), (RelationFormula, 1, 2), (RelationFormula, 1, 2), (PropertyFormula, 2)],\
+        [(PropertyFormula, 1), (RelationFormula, 1, 2), (PropertyFormula, 2)],\
+        [(PropertyFormula, 1), (RelationFormula, 1, 2), (PropertyFormula, 2)],\
         [(PropertyFormula, 1), (RelationFormula, 1, 2), (PropertyFormula, 2)],\
         [(PropertyFormula, 1), (RelationFormula, 2, 1), (PropertyFormula, 2)],\
         [(PropertyFormula, 1), (RelationFormula, 1, 2)], \
@@ -48,7 +52,7 @@ class World:
 
     def sample_lexicon(self, human, formula_class, 
                        exploration_rate = None):
-        if not exploration_rate:
+        if exploration_rate == None:
             exploration_rate = self.exploration_rate
 
         thresh = random()
@@ -85,7 +89,8 @@ class World:
     def iterated_learning(self, number_intentions, number_iterations):
         parent_costs = []
         child_costs = []
-        child_grammar_sizes = []
+        parent_sizes = []
+        child_sizes = []
         accuracies = []
         # Init first (random) parent
         parent = Parent()
@@ -93,12 +98,10 @@ class World:
             print "[%s] Start iteration %d" % \
                   (datetime.today().time(), iteration)
 
-            child = Child()
+            parent_c = child_c = temp_acc = 0
+
+            child = Child() # create new child
             
-            temp_parent_cost = 0
-            temp_child_cost = 0
-            temp_child_grammar_size = 0
-            temp_acc = 0
             for _ in xrange(number_intentions):
                 template = choice(TEMPLATES)
                 intention = FormulaSet()
@@ -109,29 +112,34 @@ class World:
 
                 parent.communicate(intention, child)
 
-                temp_parent_cost += parent.cost
-                temp_child_cost += child.cost
-                temp_child_grammar_size += len(child.grammar)
+                parent_c += parent.cost
+                child_c += child.cost
                 parent_rules = parent.used_rules
                 child_rules = child.used_rules
                 common_rules = len(set(parent_rules) & set(child_rules))
                 temp_acc += 0.5 * (common_rules / len(parent_rules) + 
-                                   common_rules / len(child_rules))
+                              common_rules / len(child_rules))
 
-            parent_costs.append(temp_parent_cost / number_intentions)
-            child_costs.append(temp_child_cost / number_intentions)
-            child_grammar_sizes.append(temp_child_grammar_size / number_intentions)
+            parent_costs.append(parent_c / number_intentions)
+            child_costs.append(child_c / number_intentions)
+            parent_sizes.append(len(parent.grammar))
+            child_sizes.append(len(child.grammar))
             accuracies.append(temp_acc / number_intentions)
 
-        print "[%s] Child fully educated, grammar size: %d" % \
-                (datetime.today().time(), len(child.grammar))
-        # Grow up
-        parent = child.grow_up()
+            print "[%s] Child fully educated, grammar size: %d" % \
+                    (datetime.today().time(), len(child.grammar))
+            # Grow up
+            parent = child.grow_up()
+
         print "[%s] Child grown up, end of iteration %d" % \
                 (datetime.today().time(), iteration)
         print 'parent costs: \n%s' % parent_costs
         print 'child costs: \n%s' % child_costs
-        print 'child grammar sizes: \n%s' % child_grammar_sizes
+        print 'parent grammar sizes: \n%s' % parent_sizes
+        print 'child grammar sizes: \n%s' % child_sizes
+        grammar_diff = [parent_sizes[i]-child_sizes[i]
+                             for i in xrange(number_iterations)]
+        print 'grammar diff: \n%s' % grammar_diff
         print 'Accuracies: \n%s' % accuracies
 
 if __name__ == '__main__':

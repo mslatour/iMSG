@@ -26,8 +26,8 @@ def get_rules(parse_forest, costs, node, span, rules = None):
     if right_child: # if binary rule
         rhs = (left_child, right_child)
         cost = costs[(node,)+span]
-        amaps = (ArgumentMap.find_mapping(left_child, node),
-                 ArgumentMap.find_mapping(right_child, node))        
+        amaps = (ArgumentMap.find_mapping(left_child, node[:k-i]),
+                 ArgumentMap.find_mapping(right_child, node[k-i:]))        
         current_rule = PCFGRule(rhs, cost, amaps)
         rules.append(current_rule)
         get_rules(parse_forest, costs, left_child, (i, k), rules)

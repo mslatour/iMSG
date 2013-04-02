@@ -112,8 +112,8 @@ class Grammar:
 
             if cost < best_cost:
                 best_rules = [rule]
-            elif cost == best_cost:
-                best_rules.append(rule)
+            #elif cost == best_cost:
+            #    best_rules.append(rule)
 
         # expand rules
         expanded_rules = {}

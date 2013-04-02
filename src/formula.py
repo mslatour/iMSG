@@ -1,4 +1,5 @@
 from itertools import product
+from collections import Counter
 
 class Formula:
     _predicate = None
@@ -40,8 +41,6 @@ class Formula:
         return self.__str__()
 
 class RelationFormula(Formula):
-    _arg1 = 1
-    _arg2 = 2
 
     def __init__(self, predicate, arg1=1, arg2=2):
         Formula.__init__(self, predicate)
@@ -74,7 +73,6 @@ class RelationFormula(Formula):
         return hash((self.predicate(), self.arg1(), self.arg2()))
 
 class PropertyFormula(Formula):
-    _arg1 = 1
 
     def __init__(self, predicate, arg1=1):
         Formula.__init__(self, predicate)
@@ -118,14 +116,18 @@ class FormulaSet:
             return NotImplemented
 
     def __hash__(self):
-        return hash(tuple(self._formulas))
+        hash_list = []
+        for formula in self._formulas:
+            hash_list.append(hash(formula))
+
+        return hash(tuple(sorted(hash_list)))
 
     def __eq__(self, other):
         if not isinstance(other, FormulaSet):
             return False
 
-        return len(set(self)&set(other)) == len(other)
-    
+        return Counter(self) == Counter(other)
+
     def __lt__(self, other):
         return NotImplemented
 
