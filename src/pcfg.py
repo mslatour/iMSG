@@ -1,4 +1,4 @@
-from formula import *
+from formula import FormulaSet, ArgumentMap
 
 COST_AMAP = 0.05
 COST_MERGE = 1.5
@@ -14,11 +14,16 @@ class PCFGRule:
     :param cost - Cost of using this rule
     :param amap - Argument mappings used to go from RHS to LHS
     """
-    def __init__(self, rhs, cost, amap=None):
+    def __init__(self, rhs, cost, amap=None, lhs=None):
         self.rhs = rhs
-        self.amap = amap if amap != None else tuple([ArgumentMap()]*len(rhs))
-        self.lhs = FormulaSet([x.apply_argument_map(self.amap[i]) \
-                for i, x in enumerate(rhs)])
+        if lhs != None:
+            self.amap = ArgumentMap()
+            self.lhs = lhs
+        else:            
+            self.amap = amap if amap != None else tuple([ArgumentMap()]*len(rhs))
+            self.lhs = FormulaSet([x.apply_argument_map(self.amap[i]) \
+                    for i, x in enumerate(rhs)])
+
         self.cost = cost
 
     def __eq__(self, item):
@@ -48,7 +53,7 @@ class PCFGRule:
         for i in range(len(rhs)):
             if self.rhs[i].primitive() != rhs[i].primitive():
                 # Copy current rhs into a list
-                new_rhs = list(self.rhs)
+                new_rhs = list(rule.rhs)
                 # Alter the rhs element
                 new_rhs[i] = rhs[i]
                 # Create a new PCFG rule
@@ -72,34 +77,53 @@ class PCFGLexicalRule(PCFGRule):
     """
     :param lhs - Left-hand-side of the rule (formulaset)
     :param rhs - Right-hand-side of the rule (tuple of one string)
-    :param cost - Cost of using this rule
     """
 
     def __init__(self, lhs, rhs, cost=COST_NEW):
-        self.lhs = lhs
-        self.rhs = rhs
-        self.cost = cost
+        PCFGRule.__init__(self, rhs, cost, None, lhs)
 
     def expand(self, rhs, costs):
-        return [self]
+        return []
 
 class Grammar:
     _rules = []
 
-    def __init__(self, rules=[]):
-        self._rules = rules
+    def __init__(self, rules = None):
+        if rules == None:
+            self._rules = []
+        else:
+            self._rules = rules
 
     def rules(self):
         return self._rules
         
     def expanded_grammar(self, rhs, rhs_costs):
-        expanded_rules = {}
+        # reduce search space
+        best_rules = []
+        best_cost = float('inf')
         for rule in self.rules():
+            if len(rule.rhs) != len(rhs):
+                continue
+            # calculate cost of using this rule
+            cost = rule.cost
+            for i in xrange(len(rhs)):
+                if rule.rhs[i].primitive() != rhs[i].primitive():
+                    cost += COST_SUBSTITUTION + rhs_costs[i]
+
+            if cost < best_cost:
+                best_rules = [rule]
+            elif cost == best_cost:
+                best_rules.append(rule)
+
+        # expand rules
+        expanded_rules = {}
+        for rule in best_rules:
             temp_rules = rule.expand(rhs, rhs_costs)
             for temp in temp_rules:
                 if temp.cost < expanded_rules.get(temp, float('inf')):
                     expanded_rules[temp] = temp.cost
 
+        # merge rules
         rule_gen = self.create_rule_generator(rhs, rhs_costs)
         for rule in rule_gen:
             if rule.cost < expanded_rules.get(rule, float('inf')):
@@ -111,12 +135,19 @@ class Grammar:
         amapset = ArgumentMap.generate_amap_set(len(rhs))
         return (PCFGRule(rhs, sum(costs)+COST_MERGE, amap) for amap in amapset)
 
-    def inverse(self):
-        inverse = {}
+    def rhs_mapping(self):
+        mapping = {}
         for rule in self.rules():
-            inverse.setdefault(rule.rhs, []).append((rule.lhs, rule.cost))
+            mapping.setdefault(rule.rhs, []).append((rule.lhs, rule.cost))
 
-        return inverse
+        return mapping
+
+    def lhs_mapping(self):
+        mapping = {}
+        for rule in self.rules():
+            mapping.setdefault(rule.lhs, []).append((rule.rhs, rule.cost))
+
+        return mapping
 
     def __add__(self, other):
         if isinstance(other, Grammar):
@@ -125,6 +156,9 @@ class Grammar:
             return NotImplemented
 
     def __eq__(self, other):
+        if not isinstance(other, Grammar):
+            return False
+
         return set(self.rules()) == set(other.rules())
 
     def __lt__(self, other):
@@ -150,6 +184,9 @@ class Grammar:
   
     def __setitem__(self, key, value):
         self._rules[key] = value
+
+    def __delitem__(self, value):
+        self._rules.remove(value)
 
     def __iter__(self):
         return self._rules.__iter__()

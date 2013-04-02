@@ -13,7 +13,10 @@ probability.
 from pcfg import PCFGRule, PCFGLexicalRule
 from formula import ArgumentMap
 
-def get_rules(parse_forest, costs, node, span, rules = []):
+def get_rules(parse_forest, costs, node, span, rules = None):
+    if not rules:
+        rules = []
+
     i, j = span
     entry = parse_forest[span].get(node, None)
     if not entry: # return if reache leave
@@ -31,7 +34,7 @@ def get_rules(parse_forest, costs, node, span, rules = []):
         get_rules(parse_forest, costs, right_child, (k, j), rules)
     else: # if unary rule
         cost = costs[(node,)+span]
-        current_rule = PCFGLexicalRule(node, left_child, cost)
+        current_rule = PCFGLexicalRule(node, (left_child,), cost)
         rules.append(current_rule)
         get_rules(parse_forest, costs, left_child, (i, k), rules)
 
@@ -39,25 +42,27 @@ def get_rules(parse_forest, costs, node, span, rules = []):
 
 def make_forest(words, meaning, grammar):
     # initialize
-    parse_forest, costs = initialize_forest(words, meaning, grammar.inverse())
+    parse_forest, costs = initialize_forest(words, meaning, grammar.rhs_mapping())
 
     # expand
+    inf = float('inf')
     for span in xrange(2, len(words)+1): # loop over spans
         for i in xrange(len(words)-span+1): # loop over sub-spans [i-k), [k-j)
             j = i+span
             for k in xrange(i+1, j): # k splits span [i,j)
-                left = parse_forest.get((i, k), {})
-                right = parse_forest.get((k, j), {})                
-                for x in left: # loop over nodes with span [i-k)
-                    for y in right: # loop over nodes with span [k-j)
-                        rhs = (x, y)
-                        rhs_costs = (costs[(x, i, k)], costs[(y, k, j)])
+                left_nodes = parse_forest.get((i, k), {})
+                right_nodes = parse_forest.get((k, j), {})                
+                for left in left_nodes: # loop over nodes with span [i-k)
+                    for right in right_nodes: # loop over nodes with span [k-j)
+                        rhs = (left, right)
+                        rhs_costs = (costs[(left, i, k)], costs[(right, k, j)])
                         inv_grammar = grammar.expanded_grammar(
-                                                    rhs, rhs_costs).inverse()
-                        for lhs, current_cost in inv_grammar[(x, y)]: # expand trees
-                            if current_cost < costs.get((lhs, i, j), float('inf')):
+                                                    rhs, rhs_costs).rhs_mapping()
+                        for lhs, current_cost in inv_grammar[(left, right)]:
+                            if current_cost < costs.get((lhs, i, j), inf):
                                 costs[(lhs, i, j)] = current_cost
-                                parse_forest.setdefault((i, j), {})[lhs] = (x, y, k)
+                                parse_forest.setdefault((i, j), {})[lhs] = \
+                                                                (left, right, k)
 
     return parse_forest, costs
 
@@ -75,4 +80,3 @@ def initialize_forest(words, meaning, lexicon):
             costs[(lhs, i, i+1)] = current_cost # set cost of node
 
     return parse_forest, costs
-

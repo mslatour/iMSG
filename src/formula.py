@@ -103,10 +103,11 @@ class PropertyFormula(Formula):
 class FormulaSet:
     _formulas = []
 
-    def __init__(self, formulas=[]):
-        self._formulas=[]
-        for f in formulas:
-            self.append(f)
+    def __init__(self, formulas=None):
+        self._formulas = []
+        if formulas != None:
+            for formula in formulas:
+                self.append(formula)
 
     def __add__(self, other):
         if isinstance(other, FormulaSet):
@@ -120,6 +121,9 @@ class FormulaSet:
         return hash(tuple(self._formulas))
 
     def __eq__(self, other):
+        if not isinstance(other, FormulaSet):
+            return False
+
         return len(set(self)&set(other)) == len(other)
     
     def __lt__(self, other):
@@ -146,6 +150,9 @@ class FormulaSet:
     def __setitem__(self, key, value):
         self._formulas[key] = value
 
+    def __delitem__(self, value):
+        self._formulas.remove(value)
+
     def __iter__(self):
         return self._formulas.__iter__()
     
@@ -163,16 +170,16 @@ class FormulaSet:
 
     def append(self, item):
         if isinstance(item, FormulaSet):
-            for f in item:
-                self.append(f)
+            for formula in item:
+                self.append(formula)
         else:
             self._formulas.append(item)
 
     def primitive(self):
-        fs = FormulaSet()
-        for f in self:
-            fs.append(f.primitive())
-        return fs
+        prim = FormulaSet()
+        for formula in self:
+            prim.append(formula.primitive())
+        return prim
 
     def formulas(self):
         return self._formulas
@@ -196,10 +203,11 @@ class ArgumentMap:
     """
     MAX_CARDINALITY = 2
 
-    def __init__(self, amap={}):
+    def __init__(self, amap=None):
         self.amap = {1:1, 2:2}
-        for arg in amap:
-            self.amap[arg] = amap[arg]
+        if amap != None:
+            for arg in amap:
+                self.amap[arg] = amap[arg]
 
     def __eq__(self, item):
         return self.amap == item.amap
@@ -217,17 +225,17 @@ class ArgumentMap:
         return self.__str__()
 
     @staticmethod
-    def generate_amap_set(n):
+    def generate_amap_set(num):
         return product(*[[ArgumentMap(dict(zip(args, x))) \
             for x in product(args, repeat=ArgumentMap.MAX_CARDINALITY)] \
-                for args in [range(1, ArgumentMap.MAX_CARDINALITY+1)]*n])
+                for args in [range(1, ArgumentMap.MAX_CARDINALITY+1)]*num])
 
     @staticmethod
-    def find_mapping(a, b):
+    def find_mapping(form_a, form_b):
         amap = {}
-        for f_a in a:
-            if f_a.primitive() in b.primitive():
-                f_b = b[b.primitive().index(f_a)]
+        for f_a in form_a:
+            if f_a.primitive() in form_b.primitive():
+                f_b = form_b[form_b.primitive().index(f_a)]
                 if isinstance(f_b, RelationFormula):
                     amap[f_a.arg1()] = f_b.arg1()
                     amap[f_a.arg2()] = f_b.arg2()
