@@ -5,7 +5,8 @@ from pcfg import PCFGLexicalRule
 from human import Child, Parent
 
 OPT_SAMPLE_MEANING = True
-OPT_SAMPLE_TEMPLATE = True
+OPT_SAMPLE_TEMPLATE = False
+OPT_DEBUG_ZIPF = True
 
 UNIVERSAL_MEANING = [\
     PropertyFormula('cat',1), \
@@ -149,6 +150,11 @@ class World:
         accuracies = []
         # Init first (random) parent
         parent = Parent()
+
+        if OPT_DEBUG_ZIPF:
+            debug_property_zipf_file = open("debug_property_zipf.txt","w")
+            debug_relation_zipf_file = open("debug_relation_zipf.txt","w")
+
         for iteration in xrange(number_iterations):
             print "[%s] Start iteration %d" % \
                   (datetime.today().time(), iteration)
@@ -172,8 +178,12 @@ class World:
                     intention = choice(INTENTIONS)
 
                 parent.communicate(intention, child)
-                print "[COST:%d] parent: %f child: %f" % (iteration, parent.cost, child.cost)
-                print child.grammar
+                if OPT_DEBUG_ZIPF:
+                    for f in intention:
+                        if isinstance(f, PropertyFormula):
+                            debug_property_zipf_file.write(f.predicate()+'\n')
+                        else:
+                            debug_relation_zipf_file.write(f.predicate()+'\n')
 
                 parent_c += parent.cost
                 child_c += child.cost
@@ -204,6 +214,9 @@ class World:
                              for i in xrange(number_iterations)]
         print 'grammar diff: \n%s' % grammar_diff
         print 'Accuracies: \n%s' % accuracies
+        if OPT_DEBUG_ZIPF:
+            debug_property_zipf_file.close()
+            debug_relation_zipf_file.close()
 
 if __name__ == '__main__':
     WORLD = World(0.1, 1)
