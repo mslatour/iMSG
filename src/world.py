@@ -1,5 +1,5 @@
 from random import random, choice, seed
-from formula import RelationFormula, PropertyFormula, FormulaSet
+from formula import RelationFormula, PropertyFormula, Formula, FormulaSet
 from datetime import datetime
 from pcfg import PCFGLexicalRule
 from human import Child, Parent
@@ -64,11 +64,12 @@ class World:
     
     def from_intention_to_template(self, intention):
         template = []
-        for f in intention:
-            if isinstance(f,PropertyFormula):
-                template.append((PropertyFormula, f.arg1()))
-            elif isinstance(f, RelationFormula):
-                template.append((RelationFormula, f.arg1(), f.arg2()))
+        for form in intention:
+            if isinstance(form, PropertyFormula):
+                template.append((PropertyFormula, form.arg1()))
+            elif isinstance(form, RelationFormula):
+                template.append((RelationFormula, 
+                                 form.arg1(), form.arg2()))
             else:
                 template.append((Formula,))
         return template
@@ -87,8 +88,7 @@ class World:
         # Cumulative probability density
         cum_prob = 0
 
-        relevant_lexicon = []
-        # Sample from relevant_lexicon
+        # Sample from grammar
         for rule in human.grammar:
             template = self.from_intention_to_template(rule.lhs)
             if template in unseen_templates:
@@ -103,7 +103,7 @@ class World:
             # or if every meaning is explored, 
             # sample again without exploration
             self.exploration_rate = 0
-            return self.sample_template(human,0)
+            return self.sample_template(human, 0)
 
     def sample_lexicon(self, human, formula_class, 
                        exploration_rate = None):
@@ -125,7 +125,6 @@ class World:
         # Cumulative probability density
         cum_prob = 0
 
-        relevant_lexicon = []
         # Sample from relevant_lexicon
         for rule in relevant_lexicon:
             if rule.lhs[0].predicate() in unseen_meaning:
