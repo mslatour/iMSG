@@ -94,7 +94,25 @@ class PCFGLexicalRule(PCFGRule):
         PCFGRule.__init__(self, rhs, cost, None, lhs, msg)
 
     def expand(self, rhs, costs):
-        return []
+        if self.rhs != rhs:
+            return []
+
+        # Create set of possible argument mappings
+        amapset = ArgumentMap.generate_amap_set(len(rhs))
+
+        # Placeholder for possible PCFG rules
+        pcfgs = []
+
+        # Generate all argument variations
+        for amap in amapset:
+            cost = self.cost + (0 if amap[0] == ArgumentMap() else COST_AMAP)
+            pcfgs.append(PCFGLexicalRule(
+                    self.lhs.apply_argument_map(amap[0]), \
+                    self.rhs, \
+                    cost, \
+                    msg = self.msg))
+
+        return pcfgs
 
 class Grammar:
     _rules = []
@@ -152,11 +170,14 @@ class Grammar:
         amapset = ArgumentMap.generate_amap_set(len(rhs))
         return (PCFGRule(rhs, sum(costs)+COST_MERGE, amap, msg=("MERGE {%s}" % (rhs,))) for amap in amapset)
 
-    def rhs_mapping(self):
+    def rhs_mapping(self, expand=False):
         mapping = {}
         for rule in self.rules():
-            mapping.setdefault(rule.rhs, []).append((rule.lhs, rule.cost))
-
+            if expand and isinstance(rule, PCFGLexicalRule):
+                for rule_exp in rule.expand(rule.rhs,None):
+                    mapping.setdefault(rule_exp.rhs, []).append((rule_exp.lhs, rule_exp.cost))
+            else:
+                mapping.setdefault(rule.rhs, []).append((rule.lhs, rule.cost))
         return mapping
 
     def lhs_mapping(self):

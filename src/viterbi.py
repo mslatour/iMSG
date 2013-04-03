@@ -42,7 +42,7 @@ def get_rules(parse_forest, costs, node, span, rules = None):
 
 def make_forest(words, meaning, grammar):
     # initialize
-    parse_forest, costs = initialize_forest(words, meaning, grammar.rhs_mapping())
+    parse_forest, costs = initialize_forest(words, meaning, grammar.rhs_mapping(len(meaning)==1))
 
     # expand
     inf = float('inf')

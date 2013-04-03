@@ -36,10 +36,7 @@ UNIVERSAL_MEANING = [\
 ]
 
 TEMPLATES = [\
-#        [(PropertyFormula, 1), (RelationFormula, 1, 2), (RelationFormula, 1, 2), (PropertyFormula, 2)],\
-#        [(PropertyFormula, 1), (RelationFormula, 1, 2), (PropertyFormula, 2)],\
-#        [(PropertyFormula, 1), (RelationFormula, 1, 2), (PropertyFormula, 2)],\
-#        [(PropertyFormula, 1), (RelationFormula, 1, 2), (PropertyFormula, 2)],\
+        [(PropertyFormula, 1), (RelationFormula, 1, 2), (PropertyFormula, 2)],\
         [(PropertyFormula, 1), (RelationFormula, 2, 1), (PropertyFormula, 2)],\
         [(RelationFormula, 1, 2), (PropertyFormula, 1)], \
         [(RelationFormula, 2, 1), (PropertyFormula, 1)], \
@@ -83,7 +80,7 @@ class World:
         thresh = random()
         
         # Normalized sum
-        norm_sum = float(sum([1/float(rule.cost) for rule in human.grammar]))
+        norm_sum = float(sum([1/float(rule.cost*(2*len(rule.lhs)-1)) for rule in human.grammar]))
 
         unseen_templates = TEMPLATES
 
@@ -96,7 +93,7 @@ class World:
             template = self.from_intention_to_template(rule.lhs)
             if template in unseen_templates:
                 unseen_templates.remove(template)
-            cum_prob += (1-exploration_rate)/(float(rule.cost)*norm_sum)
+            cum_prob += (1-exploration_rate)/(float(rule.cost)*(2*len(rule.lhs)-1)*norm_sum)
             if cum_prob >= thresh:
                 return template
         if len(unseen_templates) > 0:
@@ -210,5 +207,5 @@ class World:
         print 'Accuracies: \n%s' % accuracies
 
 if __name__ == '__main__':
-    WORLD = World(1, 1)
-    WORLD.iterated_learning(10, 10)
+    WORLD = World(0.1, 1)
+    WORLD.iterated_learning(10, 50)
