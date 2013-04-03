@@ -4,7 +4,7 @@
 # test file
 test.py
 
-# tex
+# tex files
 *.aux
 *.log
 *.gz
@@ -13,6 +13,8 @@ test.py
 *.pdf
 *.snm
 *.toc
+*.bbl
+*.blg
 
 # temp folder
 tmp/*
