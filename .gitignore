@@ -1,3 +1,6 @@
+# text files
+*.txt
+
 # test file
 test.py
 

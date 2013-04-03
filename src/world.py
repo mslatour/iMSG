@@ -4,6 +4,7 @@ from datetime import datetime
 from pcfg import PCFGLexicalRule
 from human import Child, Parent
 import sys
+import argparse
 
 OPT_SAMPLE_MEANING = True
 OPT_SAMPLE_TEMPLATE = False
@@ -235,6 +236,32 @@ class World:
             debug_stat_file.close()
 
 if __name__ == '__main__':
+    arg_parser = argparse.ArgumentParser()
+    arg_parser.add_argument("-i", "--intentions", type=int, 
+        help="Number of intentions")
+    arg_parser.add_argument("-I", "--iterations", type=int, 
+        help="Number of iterations")
+    arg_parser.add_argument("-e", "--exploration", type=float,
+        help="Exploration rate")
+    arg_parser.add_argument("-s", "--seed", type=int, default=None,
+        help="Seed for random sampling (optional)")
+    arg_parser.add_argument("-m", "--meaning", action='store_true',
+        default=False, help="Sample meaning")
+    arg_parser.add_argument("-t", "--template", action='store_true',
+        default=False, help="Sample template")
+    arg_parser.add_argument("-d", "--debug", action='store_true',
+        default=False, help="Debug")
+    
+    args = arg_parser.parse_args()
+    OPT_SAMPLE_MEANING = args.meaning
+    OPT_SAMPLE_TEMPLATE = args.template
+    OPT_DEBUG_STAT = args.debug
+    
+    print OPT_SAMPLE_MEANING, OPT_SAMPLE_TEMPLATE, OPT_DEBUG_STAT
+    
+    WORLD = World(args.exploration, args.seed)
+    WORLD.iterated_learning(args.intentions, args.iterations)
+    '''
     if len(sys.argv)-1 == 3 or len(sys.argv)-1 == 4:
         WORLD = World(float(sys.argv[3]), 
                       int(sys.argv[4]) if len(sys.argv)==5 else None)
@@ -242,5 +269,6 @@ if __name__ == '__main__':
     else:
         print 'Requires as input: \n\t#intentions\n\t#iterations\
                 \n\texploration_rate\n\tseed (optional)'
+    '''
     #WORLD = World(0.1, 1)
     #WORLD.iterated_learning(10, 50)
