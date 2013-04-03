@@ -7,7 +7,7 @@ import sys
 
 OPT_SAMPLE_MEANING = True
 OPT_SAMPLE_TEMPLATE = False
-OPT_DEBUG_ZIPF = True
+OPT_DEBUG_STAT = True
 
 UNIVERSAL_MEANING = [\
     PropertyFormula('cat',1), \
@@ -144,17 +144,19 @@ class World:
             return self.sample_lexicon(human, formula_class, 0)
 
     def iterated_learning(self, number_intentions, number_iterations):
-        parent_costs = []
-        child_costs = []
+        parent_parse_costs = []
+        child_parse_costs = []
+        child_grammar_costs = []
         parent_sizes = []
         child_sizes = []
         accuracies = []
         # Init first (random) parent
         parent = Parent()
 
-        if OPT_DEBUG_ZIPF:
-            debug_property_zipf_file = open("debug_property_zipf.txt","w")
-            debug_relation_zipf_file = open("debug_relation_zipf.txt","w")
+        if OPT_DEBUG_STAT:
+            debug_property_stat_file = open("debug_property_stat.txt","w")
+            debug_relation_stat_file = open("debug_relation_stat.txt","w")
+            debug_stat_file = open("debug_stat.txt","w")
 
         for iteration in xrange(number_iterations):
             print "[%s] Start iteration %d" % \
@@ -179,12 +181,12 @@ class World:
                     intention = choice(INTENTIONS)
 
                 parent.communicate(intention, child)
-                if OPT_DEBUG_ZIPF:
+                if OPT_DEBUG_STAT:
                     for f in intention:
                         if isinstance(f, PropertyFormula):
-                            debug_property_zipf_file.write(f.predicate()+'\n')
+                            debug_property_stat_file.write(f.predicate()+'\n')
                         else:
-                            debug_relation_zipf_file.write(f.predicate()+'\n')
+                            debug_relation_stat_file.write(f.predicate()+'\n')
 
                 parent_c += parent.cost
                 child_c += child.cost
@@ -194,8 +196,9 @@ class World:
                 temp_acc += 0.5 * (common_rules / len(parent_rules) + 
                               common_rules / len(child_rules))
 
-            parent_costs.append(parent_c / number_intentions)
-            child_costs.append(child_c / number_intentions)
+            parent_parse_costs.append(parent_c / number_intentions)
+            child_parse_costs.append(child_c / number_intentions)
+            child_grammar_costs.append(sum([rule.cost for rule in child.grammar]))
             parent_sizes.append(len(parent.grammar))
             child_sizes.append(len(child.grammar))
             accuracies.append(temp_acc / number_intentions)
@@ -207,17 +210,29 @@ class World:
 
             print "[%s] Child grown up, end of iteration %d" % \
                     (datetime.today().time(), iteration)
-        print 'parent costs: \n%s' % parent_costs
-        print 'child costs: \n%s' % child_costs
+        print 'parent parse costs: \n%s' % parent_parse_costs
+        print 'child parse costs: \n%s' % child_parse_costs
+        print 'child grammar costs: \n%s' % child_grammar_costs
         print 'parent grammar sizes: \n%s' % parent_sizes
         print 'child grammar sizes: \n%s' % child_sizes
+        if OPT_DEBUG_STAT:
+            for i in xrange(number_iterations):
+                debug_stat_file.write(\
+                        "%f %f %f %f %f\n" % (\
+                            parent_parse_costs[i],\
+                            child_parse_costs[i], \
+                            child_grammar_costs[i], \
+                            parent_sizes[i], \
+                            child_sizes[i]))
+
         grammar_diff = [parent_sizes[i]-child_sizes[i]
                              for i in xrange(number_iterations)]
         print 'grammar diff: \n%s' % grammar_diff
         print 'Accuracies: \n%s' % accuracies
-        if OPT_DEBUG_ZIPF:
-            debug_property_zipf_file.close()
-            debug_relation_zipf_file.close()
+        if OPT_DEBUG_STAT:
+            debug_property_stat_file.close()
+            debug_relation_stat_file.close()
+            debug_stat_file.close()
 
 if __name__ == '__main__':
     if len(sys.argv)-1 == 3 or len(sys.argv)-1 == 4:
