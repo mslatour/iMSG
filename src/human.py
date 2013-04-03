@@ -98,8 +98,10 @@ class Parent:
 
             words.append(word)
 
-        print "[%s] Verbalizing (%s,%s)" % \
-                (datetime.today().time(), words, meaning)
+        #TODO: write debug function that toggles
+        #print "[%s] Verbalizing (%s,%s)" % \
+        #        (datetime.today().time(), words, meaning)
+
         # find parse that matches the meaning
         parse_forest, costs = viterbi.make_forest(words, meaning, self.grammar)
         span = (0, len(words))
@@ -110,6 +112,7 @@ class Parent:
                 self.used_rules = rules
                 break
 
-        print "[%s] Communicate (%s,%s)" % \
-                (datetime.today().time(), words, meaning)
+        #TODO: write debug function that toggles
+        #print "[%s] Communicate (%s,%s)" % \
+        #        (datetime.today().time(), words, meaning)
         child.observe((words, meaning))
