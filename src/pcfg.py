@@ -168,7 +168,8 @@ class Grammar:
 
     def create_rule_generator(self, rhs, costs):
         amapset = ArgumentMap.generate_amap_set(len(rhs))
-        return (PCFGRule(rhs, sum(costs)+COST_MERGE, amap, msg=("MERGE {%s}" % (rhs,))) for amap in amapset)
+        return (PCFGRule(rhs, sum(costs)+COST_MERGE, amap, 
+                         msg=("MERGE {%s}" % (rhs,))) for amap in amapset)
 
     def rhs_mapping(self, expand=False):
         mapping = {}
