@@ -237,16 +237,28 @@ class World:
 
 if __name__ == '__main__':
     arg_parser = argparse.ArgumentParser()
-    arg_parser.add_argument("-m", "--intentions", type=int, 
+    arg_parser.add_argument("-i", "--intentions", type=int, 
         help="Number of intentions")
-    arg_parser.add_argument("-t", "--iterations", type=int, 
+    arg_parser.add_argument("-I", "--iterations", type=int, 
         help="Number of iterations")
     arg_parser.add_argument("-e", "--exploration", type=float,
         help="Exploration rate")
     arg_parser.add_argument("-s", "--seed", type=int, default=None,
         help="Seed for random sampling (optional)")
+    arg_parser.add_argument("-m", "--meaning", action='store_true',
+        default=False, help="Sample meaning")
+    arg_parser.add_argument("-t", "--template", action='store_true',
+        default=False, help="Sample template")
+    arg_parser.add_argument("-d", "--debug", action='store_true',
+        default=False, help="Debug")
     
     args = arg_parser.parse_args()
+    OPT_SAMPLE_MEANING = args.meaning
+    OPT_SAMPLE_TEMPLATE = args.template
+    OPT_DEBUG_STAT = args.debug
+    
+    print OPT_SAMPLE_MEANING, OPT_SAMPLE_TEMPLATE, OPT_DEBUG_STAT
+    
     WORLD = World(args.exploration, args.seed)
     WORLD.iterated_learning(args.intentions, args.iterations)
     '''
