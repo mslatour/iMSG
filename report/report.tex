@@ -51,10 +51,10 @@ A variation to having a predefined set of intentions is to only sample from pred
     \item Initialize the set of unused formula predicates $U$ to the predefined set of all possible predicates of $type(t_i)$
     \item Define grammar subset $G_l'$ as $\left\{r \in G_l | type(lhs(r)) = type(t_i)\right\}$
     \item Calculate normalization constant $Z = \sum\limits_{r \in G_l'} \frac{1}{cost(r)}$
-    \item For each rule $r_l \in G_l'$:
+    \item For each lexical rule $r_l \in G_l'$:
         \begin{enumerate}
             \item Remove $pred(lhs(r_l))$ from $U$
-            \item $p \gets p + \frac{1-\epsilon}{cost(r) \cdot Z}$, where $\epsilon$ is the exploration rate.
+            \item $p \gets p + \frac{1-\epsilon}{cost(r) \cdot Z}$, where $\epsilon$ is the exploration rate
             \item If $p \geq \theta$ then \textbf{insert} $pred(lhs(r_l))$ and \textbf{return}
         \end{enumerate}
     \item If $U \neq \emptyset$ then \textbf{insert} a random predicate from $U$ and \textbf{return}
@@ -64,10 +64,27 @@ A variation to having a predefined set of intentions is to only sample from pred
 \end{mdframed}
 \subsubsection{Template sampling}
 
-    %\item Calculate normalization constant $Z$, $Z = \sum_{r \in G_l'} \left[ \frac{1}{cost(r) \cdot 2 \cdot \left|\left|lhs(r)\right|\right| - 1} \right]$
+\begin{mdframed}
+    \textbf{Procedure 2} \textsc{TemplateSampling}\vspace{0.2cm}\hrule\vspace{0.2cm}
+\begin{enumerate}
+    \item Draw random number $\theta$, where $0 \leq \theta < 1$
+    \item Initialize cumulative probability $p \gets 0$
+    \item Initialize the set of unused templates $U$ to the predefined set of all possible templates
+    \item Calculate normalization constant $Z = \sum_{r \in G} \left[ \frac{1}{cost(r) \cdot 2 \cdot \left|\left|lhs(r)\right|\right| - 1} \right]$
+    \item For each rule $r \in G$:
+        \begin{enumerate}
+            \item Convert the intention $lhs(r)$ to template $t$ by replacing the formula predicates with their type
+            \item Remove $t$ from $U$
+            \item $p \gets p + \frac{1 - \epsilon}{cost(r) \cdot 2 \cdot \left|\left|lhs(r)\right|\right| - 1}$, where $\epsilon$ is the exploration rate
+            \item If $p \geq \theta$ then \textbf{return} $t$
+        \end{enumerate}
+    \item If $U \neq \emptyset$ then \textbf{return} a random template from $U$
+    \item $\epsilon \gets 0$
+    \item Go to step one
+\end{enumerate}
+\end{mdframed}
 \subsection{Parent: Verbalize meanings}
 \subsubsection{Find the words to say}
-\subsubsection{Verbalization cost}
 \subsection{Child: Learning grammar} % michael
 \subsubsection{ViterbiX} % michael
 \section{Experiments}
