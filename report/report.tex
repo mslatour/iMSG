@@ -2,6 +2,7 @@
 \usepackage[latin1]{inputenc}
 \usepackage[english]{babel}
 \usepackage{graphicx}
+\usepackage[linewidth=1pt]{mdframed}
 %\usepackage{tikz-qtree}
 
 \usepackage[margin=2cm]{geometry}
@@ -29,7 +30,7 @@ This paper is structured as follows. Section \ref{sec:system_overview} describes
     \item[formula] A formula $f$ consists of a predicate, denoted as $pred(f)$, and zero or more arguments, denoted as $args(f)$. The number of arguments is defined by the type of the formula, denoted by $type(f)$, which in this paper is either \verb|PropertyFormula| or \verb|RelationFormula| with one and two arguments respectively. For example, the formula \verb|(snake, 1)| has $pred($\verb|(snake,1)|$)$ = \verb|snake|, $args($\verb|(snake,1)|$)$ = $[1]$ and $type($\verb|(snake, 1)|$)$ = \verb|ProperyFormula|.
     \item[intention] An intention is a set of formulas that as a whole contains some semantic message. For example, an intention could contain \verb|[(tweety, 1), (see, 1, 2), (pussycat, 2)]| to express that tweety sees a pussycat. Intentions can be combined with other intentions by merging the sets.
     \item[rule] A rule $r$ is similar to an unnormalized PCFG rule. The left-hand-side of the rule, denoted by $lhs(r)$, is an intention. The right-hand-side of the rule, denoted as $rhs(r)$, is a set of intentions that together combine into $lhs(r)$. Linked to the rule is the cost of using the rule, denoted by $cost(r)$, which inversely relates to the probability of that rule being used.
-    \item[lexical rule] A lexical PCFG rule $r_l$ differs from normal rules in that $lhs(r_l)$ contains only one formula and $rhs(r_l)$ is a string of characters (i.e. a word). In this paper, $type(lhs(r_l))$ will denote the type of the single formula in $lhs(r_l)$.
+    \item[lexical rule] A lexical PCFG rule $r_l$ differs from normal rules in that the left-hand-side contains only one formula and $rhs(r_l)$ is a string of characters (i.e. a word). In this paper, $lhs(r_l)$ will for lexical rules denote the only formula in the left-hand-side. As a result, $type(lhs(r_l))$ will denote the type of the single formula in $lhs(r_l)$.
     \item[grammar] A grammar $G$ consists of all rules and lexical rules. The subgrammar $G_l$ is a subset of $G$ and contains only the lexical rules from $G$.
 % argument mapping
 \end{description}
@@ -41,15 +42,28 @@ In order to explore the effect of this paper's approach and the validaty of the 
 Three different methods were developed to obtain an intention to express. The first one is simply by taking a uniform random sample from a fixed set of intentions. The other two methos will now be described.
 \subsubsection{Meaning sampling with templates}
 A variation to having a predefined set of intentions is to only sample from predefined templates. These templates consist of placeholders that specify the type of formulas that can be ingested and the arguments that the formula wil have. For example, the template \verb|[(PropertyFormula, 1), (RelationFormula, 1, 2), (PropertyFormula, 2)]| allows for intentions that contain two properties and a relationship between them. A possible instantiation of this template is \verb|[(snake, 1), (bite, 1, 2), (pig, 2)]|. The templates ensure a certain complexity in the intention, without fully specifying it. The instantiation of the template is done by sampling formulas that fit the specified type according to the grammar, which is described in the following algorithm:
+\begin{mdframed}
+\noindent For each placeholder $t_i$ in template:
 \begin{enumerate}
-    \item For each placeholder in template:
+    \item Draw random number $\theta$, where $0 \leq \theta < 1$
+    \item Initialize cumulative probability $p \gets 0$
+    \item Initialize the set of unseen formula predicates $U$ to the predefined set of all possible predicates of $type(t_i)$
+    \item Define grammar subset $G_l'$ as $\left\{r \in G_l | type(lhs(r)) = type(t_i)\right\}$
+    \item Calculate normalization constant $Z = \sum\limits_{r \in G_l'} \frac{1}{cost(r)}$
+    \item For each rule $r_l \in G_l'$:
         \begin{enumerate}
-            \item For rule in $G_l$
+            \item Remove $pred(lhs(r_l))$ from $U$
+            \item $p \gets p + \frac{1-\epsilon}{cost(r) \cdot Z}$, where $\epsilon$ is the exploration rate.
+            \item If $p \geq \theta$ then \textbf{insert} $pred(lhs(r_l))$ and \textbf{return}
         \end{enumerate}
+    \item If $U \neq \emptyset$ then \textbf{insert} a random predicate from $U$ and \textbf{return}
+    \item $\epsilon \gets 0$
+    \item Go to step one
 \end{enumerate}
-
+\end{mdframed}
 \subsubsection{Template sampling}
 
+    %\item Calculate normalization constant $Z$, $Z = \sum_{r \in G_l'} \left[ \frac{1}{cost(r) \cdot 2 \cdot \left|\left|lhs(r)\right|\right| - 1} \right]$
 \subsection{Parent: Verbalize meanings}
 \subsubsection{Find the words to say}
 \subsubsection{Verbalization cost}
