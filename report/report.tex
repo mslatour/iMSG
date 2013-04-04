@@ -41,13 +41,14 @@ In order to explore the effect of this paper's approach and the validaty of the 
 \subsection{Generating intention}
 Three different methods were developed to obtain an intention to express. The first one is simply by taking a uniform random sample from a fixed set of intentions. The other two methos will now be described.
 \subsubsection{Meaning sampling with templates}
-A variation to having a predefined set of intentions is to only sample from predefined templates. These templates consist of placeholders that specify the type of formulas that can be ingested and the arguments that the formula wil have. For example, the template \verb|[(PropertyFormula, 1), (RelationFormula, 1, 2), (PropertyFormula, 2)]| allows for intentions that contain two properties and a relationship between them. A possible instantiation of this template is \verb|[(snake, 1), (bite, 1, 2), (pig, 2)]|. The templates ensure a certain complexity in the intention, without fully specifying it. The instantiation of the template is done by sampling formulas that fit the specified type according to the grammar, which is described in the following algorithm:
+A variation to having a predefined set of intentions is to only sample from predefined templates. These templates consist of placeholders that specify the type of formulas that can be ingested and the arguments that the formula wil have. For example, the template \verb|[(PropertyFormula, 1), (RelationFormula, 1, 2), (PropertyFormula, 2)]| allows for intentions that contain two properties and a relationship between them. A possible instantiation of this template is \verb|[(snake, 1), (bite, 1, 2), (pig, 2)]|. The templates ensure a certain complexity in the intention, without fully specifying it. The instantiation of the template is done by sampling formula predicates from the grammar that fit the specified type. The probability density function for this sampling is defined by the inverse cost of the lexical rule related to each formula. In order to deal with the situation where the grammar is still small and the amount of existing predicates in the grammar is limited or none, an exploration rate $\epsilon$ is introduced. The exploration rate defines the chance that a uniform sample is drawn from the set of unused (i.e. unknown to the parent) predicates instead of sampling them from the grammar. The instantiation of a template by sampling is described in the following algorithm:
 \begin{mdframed}
+    \textbf{Procedure 1} \textsc{PredicateSampling}\vspace{0.2cm}\hrule\vspace{0.2cm}
 \noindent For each placeholder $t_i$ in template:
 \begin{enumerate}
     \item Draw random number $\theta$, where $0 \leq \theta < 1$
     \item Initialize cumulative probability $p \gets 0$
-    \item Initialize the set of unseen formula predicates $U$ to the predefined set of all possible predicates of $type(t_i)$
+    \item Initialize the set of unused formula predicates $U$ to the predefined set of all possible predicates of $type(t_i)$
     \item Define grammar subset $G_l'$ as $\left\{r \in G_l | type(lhs(r)) = type(t_i)\right\}$
     \item Calculate normalization constant $Z = \sum\limits_{r \in G_l'} \frac{1}{cost(r)}$
     \item For each rule $r_l \in G_l'$:
