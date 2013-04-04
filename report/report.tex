@@ -12,32 +12,39 @@
 \begin{document}
 \maketitle
 \section{Introduction}
-
-\date{\today}
-
-\maketitle
-
-\section{Introduction}
 \cite{zuidema2003poverty} \cite{batali1999negotiation}
-%hypothesis
+In language learning, communication between a parent and a child typically starts with a semantic message (from now on refered to as the \emph{meaning}) that the parent wants to share with the child. In order to communicate this meaning, the parent needs to express it into a specific language formalism according to grammar rules known to the parent. The child then receives that expression in combination with the expressed meaning. Although many communication happens between a parent and a child where there is not an explicit transfer of the meaning, we focus on the part of language learning where the verbalized meaning is somehow pointed out in other ways than verbal language (e.g. by ensuring a similar observation). Based on earlier communications together with the current one, the child attempts to induce structural grammar rules in the meaning-words combinations.
+\textbf{TODO: language evolution, iterative process between parent and child. progress made, especially by zuidema in reducing number of restrictions and assumptions. however problem in ever-decreasing grammar size}
+
+The authors believe that the necessity to express a certain set of meanings will take care of the decreasing complexity of the grammar in a more natural way. The hypothesis is that by providing the parent with a list of meanings it needs to express, the iterated language evolution will optimize the language without reducing it to triviality. In order to test this hypothesis, this paper presents a semantic-driven iterated language learning framework based on both the work of \cite{zuidema2003poverty} on language evolution and the work of \cite{batali1999negotiation} on inducing semantic grammars from observations.
+
+This paper is structured as follows. Section \ref{sec:system_overview} describes the system that was build. In section \ref{sec:experiments}, the experiments are described that were conducted to test the hypothesis. The results of these experiments are discussed in section \ref{sec:results}. Section \ref{sec:conclusion} concludes the results in this paper. And in section \ref{sec:discussion} the research is discussed.
+
 \section{Related work}
 %explain batali
 %explain zuidema
 %explain how this paper differs
 \section{System overview}
+\label{sec:system_overview}
+In order to explore the effect of this paper's approach and the validaty of the hypothesis, a computer simulation was designed and implemented. The computer simulation consisted of three main parts: \emph{generating meaning}, \emph{expressing meaning} and \emph{inducing structure}. These parts will be described in the following sections.
 % image depicting the general outline (parent -> child, iterated loop)
 \subsection{Generate meanings}
 \subsubsection{Meaning sampling with templates}
 \subsubsection{Template sampling}
+
 \subsection{Parent: Verbalize meanings}
 \subsubsection{Find the words to say}
 \subsubsection{Verbalization cost}
 \subsection{Child: Learning grammar} % michael
 \subsubsection{ViterbiX} % michael
 \section{Experiments}
+\label{sec:experiments}
 \section{Results}
+\label{sec:results}
 \section{Conclusion}
+\label{sec:conclusion}
 \section{Discussion}
+\label{sec:discussion}
 
 \bibliographystyle{plainnat}
 \bibliography{references}
