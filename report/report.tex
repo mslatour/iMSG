@@ -36,11 +36,11 @@ This paper is structured as follows. Section \ref{sec:system_overview} describes
 \end{description}
 \section{System overview}
 \label{sec:system_overview}
-In order to explore the effect of this paper's approach and the validaty of the hypothesis, a computer simulation was designed and implemented. The computer simulation consisted of three main parts: \emph{generating intention}, \emph{expressing intention} and \emph{inducing structure}. These parts will be described in the following sections.
+In order to explore the effect of this paper's approach and the validaty of the hypothesis, a computer simulation was designed and implemented. The computer simulation consisted of three main parts: \emph{generating intention}, \emph{expressing intention} and \emph{inducing grammar}. These parts will be described in the following sections.
 % image depicting the general outline (parent -> child, iterated loop)
 \subsection{Generating intention}
-Three different methods were developed to obtain an intention to express. The first one is simply by taking a uniform random sample from a fixed set of intentions. The other two methos will now be described.
-\subsubsection{Predicate sampling in templates}
+Three different methods were developed to obtain an intention to express. The first one is simply by taking a uniform random sample from a fixed set of intentions. The other two methos are \emph{predicate sampling} and \emph{template sampling}.
+\subsubsection{Predicate sampling}
 \label{sec:predicate_sampling}
 A variation to having a predefined set of intentions is to only sample from predefined templates. These templates consist of placeholders that specify the type of formulas that can be ingested and the arguments that the formula wil have. For example, the template \verb|[(PropertyFormula, 1), (RelationFormula, 1, 2), (PropertyFormula, 2)]| allows for intentions that contain two properties and a relationship between them. A possible instantiation of this template is \verb|[(snake, 1), (bite, 1, 2), (pig, 2)]|. The templates ensure a certain complexity in the intention, without fully specifying it. The instantiation of the template is done by sampling formula predicates from the grammar that fit the specified type. The probability density function for this sampling is defined by the inverse cost of the lexical rule related to each formula. In order to deal with the situation where the grammar is still small and the amount of existing predicates in the grammar is limited or none, an exploration rate $\epsilon$ is introduced. The exploration rate defines the chance that a uniform sample is drawn from the set of unused (i.e. unknown to the parent) predicates instead of sampling them from the grammar. The instantiation of a template by sampling is described in the following algorithm:
 \begin{mdframed}
@@ -84,9 +84,9 @@ One set further than predicate sampling in fixed templates, is to also sample th
     \item Go to step one
 \end{enumerate}
 \end{mdframed}
-\subsection{Parent: Verbalize meanings}
-\subsubsection{Find the words to say}
-\subsection{Child: Learning grammar} % michael
+\subsection{Parent: Expressing intention}
+Once an intention has been generated it needs to be expressed. Each formula predicate in the intention is converted into a string of characters. If the formula's predicate has a related lexical rule in the parent's grammar (i.e. is known to the parent), then the word stored in the right-hand-side of that lexical rule will be used to express that predicate. If the formula's predicate is not yet part of the parent's lexicon, then a string of random sampled characters will be generated instead. This string will be between the 4 and 8 characters long. The entire expression is a combination of the expressions for each formula in the intention.
+\subsection{Child: Inducing grammar} % michael
 \subsubsection{ViterbiX} % michael
 \section{Experiments}
 \label{sec:experiments}
