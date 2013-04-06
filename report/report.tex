@@ -114,37 +114,46 @@ Once an intention has been generated it needs to be expressed. Each formula pred
 % show example observations
 
 \subsection{Child: Inducing grammar} % michael
-The child receives an observation of the parent that contains an intention and a sentence that represents the intention. The child will try to interpret the sentence and derive multiple possible intentions. This is done by first substituting words with their corresponding intentions and then substituting these intentions using the rules in its grammar until a single intention remains that covers the whole sentence. A derivation consists of the list of rules that were used to cover the whole sentence. If a sentence is ambiguous, then multiple derivations with different intentions can be derived. The rules in the derivation whose final intention matches the intention of the observation are reinforced. The rules of the derivations that did not match the observation's intention but were cheaper to construct than the correct derivation are discouraged. When a rule is reinforced its cost is decreased according to equation \ref{eq:reinforce}:
+The child receives an observation from the parent that contains an intention and a corresponding sentence. The child will try to interpret the sentence and derive multiple possible intentions. This is done by first substituting words with the intentions of matching lexical rules in the grammar and then substituting these intentions using non-lexical rules until a single intention remains that covers the whole sentence. A derivation consists of the list of rules that were used to cover the whole sentence. If a sentence is ambiguous, then multiple derivations with different intentions can be derived. The rules in the derivation whose final intention matches the intention of the observation are reinforced according to equation \ref{eq:reinforce}:
 \begin{equation}
 cost(r) \leftarrow cost(r) - r*cost(r)
 \label{eq:reinforce}
 \end{equation}
-where $r$ is the reinforcement parameter. The more a rule is used in a correct derivation the more its cost is reduced and the more likely it is used in another derivation. A rule is discouraged according to equation \ref{eq:discourage}:
+where $r$ is the reinforcement rate. The more a rule is used in a correct derivation the more its cost is reduced and the more likely it is used in another derivation. The rules of the derivations that did not match the observation's intention but were cheaper to construct than the correct derivation are discouraged according to equation \ref{eq:discourage}:
 \begin{equation}
 cost(r) \leftarrow cost(r) + d
 \label{eq:discourage}
 \end{equation}
 where $d$ is the discouragement rate.
 
-The child's parser needs to cope with the fact that its grammar does not necessary contain the rules needed to parse a sentence. The authors extend the viterbi chart parser such that new rules can be created on the fly by either modifying existing rules in the grammar or by constructing entirely new rules. 
+The child's parser needs to cope with the fact that its grammar does not necessary contain the rules needed to parse a sentence. This is especially true when the child receives its first observation and its grammar is empty. The authors extend the viterbi chart parser such that new rules can be created during parsing by either modifying existing rules in the grammar or by constructing entirely new rules. 
 
 \subsubsection{ViterbiX} % michael
-% TODO explain definition derivaiton.
-The viterbi algorithm is a dynamic programming algorithm that finds the single most likely context-free derivation $T^*$ of a sentence $U$ given a Probabilistic Context Free Grammar (PCFG) $G$: $T^* = \arg \max_{T \in G(U)} P(T|G)$. The viterbi algorithm takes as input a sentence of length $n$ and a PCFG in Chomsky Normal form\footnote{TODO explain?} to create a parse forest: a chart that compactly represents the best derivations for each span in the sentence. A span ranges from word $i$ (inclusive) to word $j$ (exclusive), which will be denoted as $[i,j)$. A sentence is parsed bottom-up by substituting two adjacent non-terminals with spans $[i,k)$ $[k,j)$ with a single non-terminal with span [i,j), according to the rules in $G$. This process is repeated until a node with span $[0,n)$ is found, i.e. a node that covers the whole sentence. In order to retrieve the context-free rules used in a derivation, the $lhs(r)$ that is added to the chart at span $[i,j)$ also contains a pointer towards the two intentions of $rhs(r)$ and their spans $[i,k)$ and $[k,j)$.
+The viterbi algorithm is a dynamic programming algorithm that finds the single most likely context-free derivation $T^*$ of a sentence $U$ given a Probabilistic Context Free Grammar (PCFG) $G$: $T^* = \arg \max_{T \in G(U)} P(T|G)$. The viterbi algorithm takes as input a sentence of $n$ words and a PCFG in Chomsky Normal form\footnote{A CFG is in Chomsky normal form if all its rules are of the form $A \rightarrow BC$ or $A \rightarrow \alpha$, where $A$, $B$ and $C$ are non-terminals and $\alpha$ is a word.} to create a parse forest: a chart that compactly represents the best derivations for each span in the sentence. A span ranges from word $i$ (inclusive) to word $j$ (exclusive), which will be denoted as $[i,j)$. A sentence is parsed bottom-up by substituting two adjacent non-terminals with spans $[i,k)$ $[k,j)$ with the left-hand-side of a matching rule and placing it in the chart for span $[i,j)$. The probability of this node in $[i,j)$ is the product of the probability of the two substituted non-terminals times the probability of the used rule. This process is repeated until a node with span $[0,n)$ is found, i.e. a node that covers the whole sentence. The probability of a node with span $[0,n)$ is the probability of that derivation. The viterbi algorithm finds the most probable derivation by maximizing the probability for each non-terminal in a span. If two different derivations produce the same non-terminal for the same span, then the non-terminal that has the highest probability, and thus belongs to the most probable derivation, is added to the chart. A PCFG has a unique non-terminal with span $[0,n)$ that can not be substituted and marks the end of a derivation\footnote{This non-terminal is often denoted as $S$ or $TOP$.}. Because all derivation produce this unique non-terminal for span $[0,n)$ and viterbi only stores the one with the highest probability, the single most likely context-free derivation is found. 
 
-In our model a context-free rule has on its left-hand-side an intention which is divided into sub-intentions on its right-hand-side such that $pred(lhs(r)) =  \bigcup_{m \in rhs(r)} pred(m)$, where $pred(m)$ gives the set of predicates for each formula in intention $m$. Since viterbi requires the grammar to be in Chomsky Normal form, the grammar contains only binary and unary rules (lexical rules).  Two intentions $B$ and $C$ with adjacent spans can be substituted if the grammar contains a rule $A \rightarrow B, C$. Since the child is learning a grammar and initially has an empty grammar, it must sometimes create the rules needed for parsing. A rule can be created in 2 different ways:
+In our model a context-free rule has on its left-hand-side an intention which is divided into sub-intentions on its right-hand-side such that 
+\begin{equation}
+pred(lhs(r)) =  \bigcup_{m \in rhs(r)} pred(m)
+\label{eq:lhsrhs}
+\end{equation}
+where $pred(m)$ gives the set of predicates for each formula in intention $m$.  Two intentions $B$ and $C$ with adjacent spans can be substituted if the grammar contains a rule $A \rightarrow B, C$. Since the child is learning a grammar and initially has an empty grammar, it must sometimes create the rules needed for parsing. A rule can be created in 2 different ways:
 \begin{description}
 \item[Substitution] An existing rule $r$ in the grammar can be adjusted such that its right-hand-side corresponds with the intentions $M = \langle B, C \rangle$ that need to be parsed:
   \begin{itemize}
   \item By substituting the argument mapping of $rhs(r)$. The cost of changing an argument mapping is $c_{arg}$
-  \item By substituting intentions in $rhs(r)$. The cost of a substituted rule $r_{sub}$ is $cost(r_{sub}) = cost(r) + \sum_{m \in M} (cost(m) + c_{sub}) \delta[m \notin rhs(r) ]$, where $c_{sub}$ is the cost of substituting an intention and $\delta[m \notin rhs(r) ]$ is 1 if $m$ needs to be substituted, otherwise 0.
+  \item By substituting intentions in $rhs(r)$. Note that the substitution of an intention in $rhs(r)$ also adjust $lhs(r)$ according to equation \ref{eq:lhsrhs}. The cost of a substituted rule $r_{sub}$ is $cost(r_{sub}) = cost(r) + \sum_{m \in M} (cost(m) + c_{sub}) \delta[m \notin rhs(r) ]$, where $c_{sub}$ is the cost of substituting an intention and $\delta[m \notin rhs(r) ]$ is 1 if $m$ needs to be substituted, otherwise 0.
   \end{itemize}
-\item[Creation] A new rule can be created by merging the intentions, such that $B\cup C \rightarrow B, C$ for any argument mapping. The cost a merged rule $r_{merge}$ is $cost(r_{merge}) = cost(B) + cost(C) + c_{merge}$, where $c_{merge}$ is the cost of merging. A lexical rule can be created by placing a word in the right-hand-side of the rule and its intention on the left-hand-side. It is assumed that the index of each formula in the intention of the given observation corresponds with the index of each word of the sentence. The cost of a new lexical rule is $cost(r_l) = c_l$.
+\item[Creation] A new rule $r$ or lexical rules $r_l$ can be created to substitute two intentions or a single word, respectively:
+  \begin{itemize}
+  \item A new rule can be created by merging two intentions, such that $B\cup C \rightarrow B, C$ for any argument mapping. The cost a merged rule $r_{merge}$ is $cost(r_{merge}) = cost(B) + cost(C) + c_{merge}$, where $c_{merge}$ is the cost of merging. 
+  \item A lexical rule can be created by placing a word on the right-hand-side of a rule and its intention on the left-hand-side. It is assumed that the index of each formula in the intention of the given observation corresponds with the index of each word of the sentence, such that the intention of a word can always be attained. The cost of a new lexical rule is $cost(r_l) = c_l$.
+  \end{itemize}
 \end{description}
 
-Viterbix is an extension of viterbi that uses \textit{substitution} and \textit{creation} of new rules to create an expanded grammar $G'$ that is able to substitute two adjacent intentions. Algorithm \ref{alg:viterbix} gives a general overview of the viterbix algorithm. On line 1 the chart is initialized with all lexical rules for each word in the given sentence. Then for each pair of intentions $\langle B, C \rangle$ in adjacent spans $[i,k)$-$[k,j)$ an expanded grammar is created. 
-% TODO continue
-Line 6 checks whether the cost of $A$ is lower than an equivalent intention present in the chart at $[i,j)$. If chart(i,j) does not contain $A$, then $cost(\cdot)$ returns infinite ensuring $A$ will be added to the chart.
+Viterbix is an extension of viterbi that uses \textit{substitution} and \textit{creation} of new rules to create an expanded grammar $G'$ that is able to substitute two adjacent intentions. Algorithm \ref{alg:viterbix} gives a general overview of the viterbix algorithm. On line 1 the chart is initialized with all lexical rules for each word in the given sentence. In lines 2-4, for each pair of intentions $M = \langle B, C \rangle$ in adjacent spans $[i,k)$-$[k,j)$ an expanded grammar $G'$ is created. $G.expand(\cdot, \cdot)$ loops through grammar $G$ and substitutes the right-hand-side of each rule $r$ such that $rhs(r) = M$, for every possible argument mapping. $G'$ contains these substituted rules along with rules created by merging $B$ and $C$ for every possible argument mapping. The left-hand-side of these rules are added to the chart at position $[i,j)$. Since our model assigns cost to rules as opposed to probabilities, line 7 checks whether the cost of $A = lhs(r) \in G'$ is \textit{lower} than an equivalent intention present in the chart at $[i,j)$. If chart(i,j) does not contain $A$, then $cost(\cdot)$ returns infinite ensuring $A$ will be added to the chart.  In order to later retrieve the context-free rules used in a derivation, the node that is added to the chart at span $[i,j)$ also contains a pointer towards the two non-terminals it substituted and their locations in the chart, i.e. the spans $[i,k)$ and $[k,j)$.
+
+Since the left-hand-side of each rule is the union of its right-hand-side, there is not necessary a unique non-terminal that covers the whole sentence. This, in effect, means that the parse forest can contain multiple intentions for span $[0,n)$. Note, however, that span $[0,n)$ contains no duplicate intentions and that each intention belongs to the cheapest derivation for that intention. Often the intentions in span $[0,n)$ share the same predicates but differ in their arguments. 
+
 
 \begin{algorithm}
 \caption{ViterbiX general algorithm}
@@ -154,7 +163,8 @@ Line 6 checks whether the cost of $A$ is lower than an equivalent intention pres
 \FOR{ $0 \le i < k < j \le n$ }
     \FOR{ $B \in chart(i,k)$ \AND $C \in chart(k,j)$ }
         \STATE $G' \leftarrow G.expand(B, C)$
-        \FOR{ $A \in G'$ }
+        \FOR{ $r \in G'$ }
+            \STATE $A = lhs(r)$
             \IF{cost(A) $<$ cost(chart(i,j).get(A)) }
                 \STATE add A$\rightarrow$(B,k,C) to chart(i,j)
             \ENDIF
@@ -167,6 +177,17 @@ Line 6 checks whether the cost of $A$ is lower than an equivalent intention pres
 \end{algorithm}
 \section{Experiments}
 \label{sec:experiments}
+In all experiments, the following parameters were constant:
+\begin{itemize}
+\item Reinforcement rate: $r = 0.1$
+\item Discouragement rate: $d = 0.1$
+\item Argument mapping cost: $c_{arg} = 0.05$
+\item Substitute cost: $c_{sub} = 0.1$
+\item Merge cost: $c_{merge} = 1.5$
+\item Lexical rule cost: $c_l = 1$
+\end{itemize}
+All parameter values were taken from \cite{batali1999negotiation}, except for the argument mapping cost which is not specified.
+
 \section{Results}
 \label{sec:results}
 \section{Conclusion}
