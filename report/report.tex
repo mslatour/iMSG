@@ -113,31 +113,42 @@ One set further than predicate sampling in fixed templates, is to also sample th
 Once an intention has been generated it needs to be expressed. Each formula predicate in the intention is converted into a string of characters. If the formula's predicate has a related lexical rule in the parent's grammar (i.e. is known to the parent), then the word stored in the right-hand-side of that lexical rule will be used to express that predicate. If the formula's predicate is not yet part of the parent's lexicon, then a string of random sampled characters will be generated instead. This string will be between the 4 and 8 characters long. The entire expression is a combination of the expressions for each formula in the intention.
 
 \subsection{Child: Inducing grammar} % michael
-The child receives an observation of the parent that contains an intention and a sentence that represents the intention. The child will find multiple parses the sentence and reinforce the rules that were used in parse that matches the intention and discourage the rules that were used in all parses that are cheaper than the correct parse.
+The child receives an observation of the parent that contains an intention and a sentence that represents the intention. The child will try to interpret the sentence and derive multiple possible intentions. This is done by first substituting words with their corresponding intentions and then substituting these intentions using the rules in its grammar until a single intention remains that covers the whole sentence. A derivation consists of the list of rules that were used to cover the whole sentence. If a sentence is ambiguous, then multiple derivations with different intentions can be derived. The rules in the derivation whose final intention matches the intention of the observation are reinforced. The rules of the derivations that did not match the observation's intention but were cheaper to construct than the correct derivation are discouraged. When a rule is reinforced its cost is decreased according to equation \ref{eq:reinforce}:
+\begin{equation}
+cost(r) \leftarrow cost(r) - r*cost(r)
+\label{eq:reinforce}
+\end{equation}
+where $r$ is the reinforcement parameter. The more a rule is used in a correct derivation the more its cost is reduced and the more likely it is used in another derivation. A rule is discouraged according to equation \ref{eq:discourage}:
+\begin{equation}
+cost(r) \leftarrow cost(r) + d
+\label{eq:discourage}
+\end{equation}
+where $d$ is the discouragement rate.
 
-The child's parser needs to cope with the fact that its grammar does not (exactly) contain the rules it needs for parsing. The authors extend the viterbi chart parser 
+The child's parser needs to cope with the fact that its grammar does not necessary contain the rules needed to parse a sentence. The authors extend the viterbi chart parser such that new rules can be created on the fly by either modifying existing rules in the grammar or by constructing entirely new rules. 
 
 \subsubsection{ViterbiX} % michael
 % TODO explain definition derivaiton.
-The viterbi algorithm is a dynamic programming algorithm that finds the single most likely context-free derivation $T^*$ of a sentence $U$ given a Probabilistic Context Free Grammar (PCFG) $G$: $T^* = \arg \max_{T \in G(U)} P(T|G)$. The viterbi algorithm takes as input a sentence of length $n$ and a PCFG in Chomsky Normal form\footnote{TODO explain?} to create a parse forest: a chart that compactly represents the best derivations for each span in the sentence. A span ranges from word $i$ (inclusive) to word $j$ (exclusive), which will be denoted as $[i,j)$. A sentence is parsed bottom-up by substituting two adjacent non-terminals with spans $[i,k)$ $[k,j)$ with a single non-terminal with span [i,j), according to the rules in $G$. This process is repeated until a node with span $[0,n)$ is found, i.e. a node that covers the whole sentence.
+The viterbi algorithm is a dynamic programming algorithm that finds the single most likely context-free derivation $T^*$ of a sentence $U$ given a Probabilistic Context Free Grammar (PCFG) $G$: $T^* = \arg \max_{T \in G(U)} P(T|G)$. The viterbi algorithm takes as input a sentence of length $n$ and a PCFG in Chomsky Normal form\footnote{TODO explain?} to create a parse forest: a chart that compactly represents the best derivations for each span in the sentence. A span ranges from word $i$ (inclusive) to word $j$ (exclusive), which will be denoted as $[i,j)$. A sentence is parsed bottom-up by substituting two adjacent non-terminals with spans $[i,k)$ $[k,j)$ with a single non-terminal with span [i,j), according to the rules in $G$. This process is repeated until a node with span $[0,n)$ is found, i.e. a node that covers the whole sentence. In order to retrieve the context-free rules used in a derivation, the $lhs(r)$ that is added to the chart at span $[i,j)$ also contains a pointer towards the two intentions of $rhs(r)$ and their spans $[i,k)$ and $[k,j)$.
 
-In our model a context-free rule has on its left-hand-side an intention which is divided into sub-intentions on its right-hand-side such that $pred(lhs(r)) =  \bigcup_{m \in rhs(r)} pred(m)$, where $pred(m)$ gives the set of predicates for each formula in intention $m$. Since viterbi requires the grammar to be in Chomsky Normal form, the grammar contains only binary and unary rules (lexical rules).  Two intentions $B$ and $C$ with adjacent spans can be substituted if the grammar contains a rule $A \rightarrow B, C$. Since the child is learning a grammar and initially has an empty grammar, it must create the rules needed for parsing. A rule can be created in 2 different ways:
+In our model a context-free rule has on its left-hand-side an intention which is divided into sub-intentions on its right-hand-side such that $pred(lhs(r)) =  \bigcup_{m \in rhs(r)} pred(m)$, where $pred(m)$ gives the set of predicates for each formula in intention $m$. Since viterbi requires the grammar to be in Chomsky Normal form, the grammar contains only binary and unary rules (lexical rules).  Two intentions $B$ and $C$ with adjacent spans can be substituted if the grammar contains a rule $A \rightarrow B, C$. Since the child is learning a grammar and initially has an empty grammar, it must sometimes create the rules needed for parsing. A rule can be created in 2 different ways:
 \begin{description}
 \item[Substitution] An existing rule $r$ in the grammar can be adjusted such that its right-hand-side corresponds with the intentions $M = \langle B, C \rangle$ that need to be parsed:
   \begin{itemize}
   \item By substituting the argument mapping of $rhs(r)$. The cost of changing an argument mapping is $c_{arg}$
-  \item By substituting intentions in $rhs(r)$. The cost of rule $r_{sub}$ created by substitution is $cost(r_{sub}) = cost(r) + \sum_{m \in M} (cost(m) + c_{sub}) \delta[m \notin rhs(r) ]$, where $c_{sub}$ is the cost of substituting an intention and $\delta[m \notin rhs(r) ]$ is 1 if $m$ needs to be substituted, otherwise 0.
+  \item By substituting intentions in $rhs(r)$. The cost of a substituted rule $r_{sub}$ is $cost(r_{sub}) = cost(r) + \sum_{m \in M} (cost(m) + c_{sub}) \delta[m \notin rhs(r) ]$, where $c_{sub}$ is the cost of substituting an intention and $\delta[m \notin rhs(r) ]$ is 1 if $m$ needs to be substituted, otherwise 0.
   \end{itemize}
-\item[Creation] A new rule can be created by merging the intentions, such that $B\cup C \rightarrow B, C$ for any argument mapping. A lexical rule can be created by placing a word in the right-hand-side of the rule and its intention on the left-hand-side. It is assumed that the index of each formula in the intention of the given observation corresponds with the index of each word of the sentence.
+\item[Creation] A new rule can be created by merging the intentions, such that $B\cup C \rightarrow B, C$ for any argument mapping. The cost a merged rule $r_{merge}$ is $cost(r_{merge}) = cost(B) + cost(C) + c_{merge}$, where $c_{merge}$ is the cost of merging. A lexical rule can be created by placing a word in the right-hand-side of the rule and its intention on the left-hand-side. It is assumed that the index of each formula in the intention of the given observation corresponds with the index of each word of the sentence. The cost of a new lexical rule is $cost(r_l) = c_l$.
 \end{description}
 
-% TODO description of the viterbix algorithm 
+Viterbix is an extension of viterbi that uses \textit{substitution} and \textit{creation} of new rules to create an expanded grammar $G'$ that is able to substitute two adjacent intentions. Algorithm \ref{alg:viterbix} gives a general overview of the viterbix algorithm. On line 1 the chart is initialized with all lexical rules for each word in the given sentence. Then for each pair of intentions $\langle B, C \rangle$ in adjacent spans $[i,k)$-$[k,j)$ an expanded grammar is created. 
+% TODO continue
 Line 6 checks whether the cost of $A$ is lower than an equivalent intention present in the chart at $[i,j)$. If chart(i,j) does not contain $A$, then $cost(\cdot)$ returns infinite ensuring $A$ will be added to the chart.
 
 \begin{algorithm}
 \caption{ViterbiX general algorithm}
 \begin{algorithmic}[1]
-\REQUIRE sentence, PCFG
+\REQUIRE sentence, $G$
 \STATE chart $\leftarrow$ initialize(sentence, $G_l$)
 \FOR{ $0 \le i < k < j \le n$ }
     \FOR{ $B \in chart(i,k)$ \AND $C \in chart(k,j)$ }
@@ -151,7 +162,7 @@ Line 6 checks whether the cost of $A$ is lower than an equivalent intention pres
 \ENDFOR
 \RETURN chart
 \end{algorithmic}
-\label{alg:viterbi}
+\label{alg:viterbix}
 \end{algorithm}
 \section{Experiments}
 \label{sec:experiments}
