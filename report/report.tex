@@ -1,4 +1,5 @@
 \documentclass[a4paper]{article}
+%\usepackage[a4paper,pdftex]{geometry}
 \usepackage[latin1]{inputenc}
 \usepackage[english]{babel}
 \usepackage{graphicx}
@@ -7,8 +8,9 @@
 \usepackage{algorithm}
 \usepackage{algorithmic}
 \usepackage{amsmath}
-
-
+\usepackage{url}
+\usepackage{caption}
+\usepackage{subcaption}
 \usepackage[margin=2cm]{geometry}
 
 \title{iMSG: Guiding language evolution by the need to express}
@@ -18,25 +20,27 @@
 \maketitle
 \section{Introduction}
 \cite{zuidema2003poverty} \cite{batali1999negotiation}
-In language learning, communication between a parent and a child typically starts with a semantic message (from now on refered to as the \emph{intention}) that the parent wants to share with the child. In order to communicate the intention, the parent needs to express it into a specific language formalism according to grammar rules known to the parent. The child then receives that expression in combination with the expressed intention. Although many communication happens between a parent and a child where there is not an explicit transfer of the intention, we focus on the part of language learning where the verbalized intention is somehow pointed out in other ways than verbal language (e.g. by ensuring a similar observation). Based on earlier communications together with the current one, the child attempts to induce structural grammar rules on how to parse and generate expressions.
-\textbf{TODO: language evolution, iterative process between parent and child. progress made, especially by zuidema in reducing number of restrictions and assumptions. however problem in ever-decreasing grammar size}
+In language learning, communication between a parent and a child typically starts with a semantic message (from now on referred to as the \emph{intention}) that the parent wants to share with the child. In order to communicate the intention, the parent needs to express it into a specific language formalism according to grammar rules known to the parent. The child then receives that expression in combination with the expressed intention. Although many communication happens between a parent and a child where there is not an explicit transfer of the intention, we focus on the part of language learning where the verbalized intention is somehow pointed out in other ways than verbal language (e.g. by ensuring a similar observation). Based on earlier communications together with the current one, the child attempts to induce structural grammar rules on how to parse and generate expressions. From all grammars that could be responsible for the observations the child constructs the one that was easiest to learn according to its learning algorithm.  In the next iteration the child becomes the parent who in turn communicates intentions to a new child. With each iteration the grammar becomes more structured and thus easier to learn for the child in the next iteration. 
 
-The authors believe that the necessity to express a certain set of intentions will take care of the decreasing complexity of the grammar in a more natural way. The hypothesis is that by providing the parent with a list of intentions it needs to express, the iterated language evolution will optimize the language without reducing it to triviality. In order to test this hypothesis, this paper presents a semantic-driven iterated language learning framework based on both the work of \cite{zuidema2003poverty} on language evolution and the work of \cite{batali1999negotiation} on inducing semantic grammars from observations.
+Progress in the field of iterated learning has been made by \cite{zuidema2003poverty}. Here the child exploits regularities in the strings it receives to construct a context-free-grammar (CFG). Once the child becomes the parent it generates strings from its grammar which are send to a new child. Zuidema's results show that over time the parent's grammar becomes easier to learn, contains fewer rules and decreases in its expressiveness, i.e. the amount of strings recognized by the grammar. Noticeable is that Zuidema enforces a minimal expressiveness of the grammar by checking if its expressiveness $E_G$ is smaller than a predefined minimal expressiveness $E$. If this is the case, $E - E_G$ new random strings are incorporated into the grammar. Without this constraint, the grammar would converge to a single context-free rule. We believe that the necessity to express a certain set of intentions will take care of the decreasing expressiveness of the grammar in a more natural way. The hypothesis is that by providing the parent with a list of intentions it needs to express, the iterated language evolution will optimize the language without reducing it to triviality. In order to test this hypothesis, this paper presents a semantic-driven iterated language learning framework based on both the work of \cite{zuidema2003poverty} on language evolution and the work of \cite{batali1999negotiation} on inducing semantic grammars from observations.
 
-This paper is structured as follows. Section \ref{sec:system_overview} describes the system that was build. In section \ref{sec:experiments}, the experiments are described that were conducted to test the hypothesis. The results of these experiments are discussed in section \ref{sec:results}. Section \ref{sec:conclusion} concludes the results in this paper. And in section \ref{sec:discussion} the research is discussed.
+%\textbf{TODO: language evolution, iterative process between parent and child. progress made, especially by zuidema in reducing number of restrictions and assumptions. however problem in ever-decreasing grammar size}
 
-\section{Related work}
+This paper is structured as follows. Section \ref{sec:system_overview} describes the system that was build. In section \ref{sec:experiments}, the experiments are described that were conducted to test the hypothesis. The results of these experiments are discussed in sections \ref{sec:results} and \ref{sec:discussion}. Section \ref{sec:conclusion} summarizes the results in this paper.
+
+%\section{Related work}
 %explain batali
 %explain zuidema
 %explain how this paper differs
 \section{Notation and Vocabulary}
+% TODO batali gebruikt fragments, wij CFG rules
 \begin{description}
     \item[formula] A formula $f$ consists of a predicate, denoted as $pred(f)$, and zero or more arguments, denoted as $args(f)$. The number of arguments is defined by the type of the formula, denoted by $type(f)$, which in this paper is either \verb|PropertyFormula| or \verb|RelationFormula| with one and two arguments respectively. For example, the formula \verb|(snake, 1)| has $pred($\verb|(snake,1)|$)$ = \verb|snake|, $args($\verb|(snake,1)|$)$ = $[1]$ and $type($\verb|(snake, 1)|$)$ = \verb|ProperyFormula|.
     \item[intention] An intention is a set of formulas that as a whole contains some semantic message. For example, an intention could contain \verb|[(tweety, 1), (see, 1, 2), (pussycat, 2)]| to express that tweety sees a pussycat. Intentions can be combined with other intentions by merging the sets.
     \item[rule] A rule $r$ is similar to an unnormalized PCFG rule. The left-hand-side of the rule, denoted by $lhs(r)$, is an intention. The right-hand-side of the rule, denoted as $rhs(r)$, is a set of intentions that together combine into $lhs(r)$. Linked to the rule is the cost of using the rule, denoted by $cost(r)$, which inversely relates to the probability of that rule being used.
     \item[argument mapping] For each intention $m$ in $rhs(r)$ there is an argument mapping that describes the transformation between the arguments of $m$'s formulas and the corresponding formulas in $lhs(r)$. For example, in figure \ref{fig:rule} the argument of [(tweety, 1)] remains the same while the arguments of [(see, 1, 2),  (pussycat, 2)] are inverted.
     \item[lexical rule] A lexical PCFG rule $r_l$ differs from normal rules in that the left-hand-side contains only one formula and $rhs(r_l)$ is a string of characters (i.e. a word). In this paper, $lhs(r_l)$ will for lexical rules denote the only formula in the left-hand-side. As a result, $type(lhs(r_l))$ will denote the type of the single formula in $lhs(r_l)$.
-    \item[grammar] A grammar $G$ consists of all rules and lexical rules. The subgrammar $G_l$ is a subset of $G$ and contains only the lexical rules from $G$.
+    \item[grammar] A grammar $G$ consists of all rules and lexical rules. The grammar $G_l$ is a subset of $G$ and contains only the lexical rules from $G$.
 % argument mapping
 \end{description}
 
@@ -55,7 +59,7 @@ This paper is structured as follows. Section \ref{sec:system_overview} describes
         ]
 ]
 \end{tikzpicture}
-\caption{A contex-free rule with argument mapping.}
+\caption{A context-free rule with intentions and argument mappings.}
 \label{fig:rule}
 \end{figure}
 
@@ -64,6 +68,7 @@ This paper is structured as follows. Section \ref{sec:system_overview} describes
 In order to explore the effect of this paper's approach and the validaty of the hypothesis, a computer simulation was designed and implemented. The computer simulation consisted of three main parts: \emph{generating intention}, \emph{expressing intention} and \emph{inducing grammar}. These parts will be described in the following sections.
 % image depicting the general outline (parent -> child, iterated loop)
 \subsection{Generating intention}
+\label{ssec:Generating intention}
 Three different methods were developed to obtain an intention to express. The first one is simply by taking a uniform random sample from a fixed set of intentions. The other two methos are \emph{predicate sampling} and \emph{template sampling}.
 \subsubsection{Predicate sampling}
 \label{sec:predicate_sampling}
@@ -89,6 +94,7 @@ A variation to having a predefined set of intentions is to only sample from pred
 \end{enumerate}
 \end{mdframed}
 \subsubsection{Template sampling}
+\label{ssec:Template sampling}
 One set further than predicate sampling in fixed templates, is to also sample the templates from the grammar. The probability density function for templates is inversely related to the sum of the cost of all the rules that instantiate the template in their left-hand-side. Furthermore the probability of a template $t$ is normalized for the number rules needed to construct the instantiation using the normalization term $2 \cdot \left|\left|t\right|\right| - 1$, which is derived by combining the number of lexical rules ($\left|\left|t\right|\right|$) with the number of rules needed in the parse tree to reach the top ($\left|\left|t\right|\right|-1$). In order to deal with the situation where the grammar is still small and the amount of instantiated templates in the grammar is limited or none, the same exploration rate $\epsilon$ is used as in section \ref{sec:predicate_sampling}. Once a template is sampled, it can be instantiated using the earlier described \textsc{PredicateSampling} procedure. The sampling of a template is described in the following algorithm:
 \begin{mdframed}
     \textbf{Procedure 2} \textsc{TemplateSampling}\vspace{0.2cm}\hrule\vspace{0.2cm}
@@ -126,7 +132,7 @@ cost(r) \leftarrow cost(r) + d
 \end{equation}
 where $d$ is the discouragement rate.
 
-The child's parser needs to cope with the fact that its grammar does not necessary contain the rules needed to parse a sentence. This is especially true when the child receives its first observation and its grammar is empty. The authors extend the viterbi chart parser such that new rules can be created during parsing by either modifying existing rules in the grammar or by constructing entirely new rules. 
+The child's parser needs to cope with the fact that its grammar does not necessary contain the rules needed to parse a sentence. This is especially true when the child receives its first observation and its grammar is empty. We extend the viterbi chart parser such that new rules can be created during parsing by either modifying existing rules in the grammar or by constructing entirely new rules. 
 
 \subsubsection{ViterbiX} % michael
 The viterbi algorithm is a dynamic programming algorithm that finds the single most likely context-free derivation $T^*$ of a sentence $U$ given a Probabilistic Context Free Grammar (PCFG) $G$: $T^* = \arg \max_{T \in G(U)} P(T|G)$. The viterbi algorithm takes as input a sentence of $n$ words and a PCFG in Chomsky Normal form\footnote{A CFG is in Chomsky normal form if all its rules are of the form $A \rightarrow BC$ or $A \rightarrow \alpha$, where $A$, $B$ and $C$ are non-terminals and $\alpha$ is a word.} to create a parse forest: a chart that compactly represents the best derivations for each span in the sentence. A span ranges from word $i$ (inclusive) to word $j$ (exclusive), which will be denoted as $[i,j)$. A sentence is parsed bottom-up by substituting two adjacent non-terminals with spans $[i,k)$ $[k,j)$ with the left-hand-side of a matching rule and placing it in the chart for span $[i,j)$. The probability of this node in $[i,j)$ is the product of the probability of the two substituted non-terminals times the probability of the used rule. This process is repeated until a node with span $[0,n)$ is found, i.e. a node that covers the whole sentence. The probability of a node with span $[0,n)$ is the probability of that derivation. The viterbi algorithm finds the most probable derivation by maximizing the probability for each non-terminal in a span. If two different derivations produce the same non-terminal for the same span, then the non-terminal that has the highest probability, and thus belongs to the most probable derivation, is added to the chart. A PCFG has a unique non-terminal with span $[0,n)$ that can not be substituted and marks the end of a derivation\footnote{This non-terminal is often denoted as $S$ or $TOP$.}. Because all derivation produce this unique non-terminal for span $[0,n)$ and viterbi only stores the one with the highest probability, the single most likely context-free derivation is found. 
@@ -185,15 +191,133 @@ In all experiments, the following parameters were constant:
 \item Substitute cost: $c_{sub} = 0.1$
 \item Merge cost: $c_{merge} = 1.5$
 \item Lexical rule cost: $c_l = 1$
+\item Number of intentions: 10
+\item Number of iterations: 50
+\item Random seed\footnote{This seed is used in each simulation to initialize the pseudo-random number generator, which is used by the parent when creating intentions and creating new words.}: 1
 \end{itemize}
-All parameter values were taken from \cite{batali1999negotiation}, except for the argument mapping cost which is not specified.
+The reinforcement and discouragement rates and the cost values were taken from \cite{batali1999negotiation}\footnote{The paper did not specify the argument mapping cost. We assumed substituting an argument mapping should be cheaper than substituting an intention.}. We experimented with 4 exploration rates, $\epsilon \in \langle 0.0, 0.1, 0.5, 1.0 \rangle$, and the 3 sampling techniques described in section \ref{ssec:Generating intention}. Figure \ref{fig:costs} shows, for all combinations of exploration rates and sampling techniques, the parent's average parse cost (red), the child's average parse cost (green), the parent's grammar size (pink), the child's grammar size (cyan) and the child's grammar cost (blue). The figures in the first, second and third column use uniform sampling, predicate sampling and template sampling, respectively. The four rows correspond to the four exploration rate, where the first row has $\epsilon = 0.0$ and the last row has $\epsilon = 1.0$. Note that the figures cannot directly be compared, since the y-axes are not equally scaled. 
+
+
+The source code to reproduce these results is available at \url{https://github.com/mslatour/iMSG}.
+
+\begin{figure}
+        \centering
+% exploration rate = 0.0
+        \begin{subfigure}[b]{0.3\textwidth}
+                \centering
+                \includegraphics[width=\textwidth]{debug_10_50_0_1_F_F_stat.pdf}
+                \caption{}
+                \label{fig:costsA}
+        \end{subfigure}%
+        ~ %add desired spacing between images, e. g. ~, \quad, \qquad etc.
+          %(or a blank line to force the subfigure onto a new line)
+        \begin{subfigure}[b]{0.3\textwidth}
+                \centering
+                \includegraphics[width=\textwidth]{debug_10_50_0_1_T_F_stat.pdf}
+                \caption{}
+                \label{fig:costsB}
+        \end{subfigure}
+        ~ %add desired spacing between images, e. g. ~, \quad, \qquad etc.
+          %(or a blank line to force the subfigure onto a new line)
+        \begin{subfigure}[b]{0.3\textwidth}
+                \centering
+                \includegraphics[width=\textwidth]{debug_10_50_0_1_T_T_stat.pdf}
+                \caption{}
+                \label{fig:costsC}
+        \end{subfigure}
+
+% exploration rate = 0.1
+        \begin{subfigure}[b]{0.3\textwidth}
+                \centering
+                \includegraphics[width=\textwidth]{debug_10_50_01_1_F_F_stat.pdf}
+                \caption{}
+                \label{fig:costsD}
+        \end{subfigure}%
+        ~ %add desired spacing between images, e. g. ~, \quad, \qquad etc.
+          %(or a blank line to force the subfigure onto a new line)
+        \begin{subfigure}[b]{0.3\textwidth}
+                \centering
+                \includegraphics[width=\textwidth]{debug_10_50_01_1_T_F_stat.pdf}
+                \caption{}
+                \label{fig:costsE}
+        \end{subfigure}
+        ~ %add desired spacing between images, e. g. ~, \quad, \qquad etc.
+          %(or a blank line to force the subfigure onto a new line)
+        \begin{subfigure}[b]{0.3\textwidth}
+                \centering
+                \includegraphics[width=\textwidth]{debug_10_50_01_1_T_T_stat.pdf}
+                \caption{}
+                \label{fig:costsF}
+        \end{subfigure}
+
+% exploration rate = 0.5
+        \begin{subfigure}[b]{0.3\textwidth}
+                \centering
+                \includegraphics[width=\textwidth]{debug_10_50_05_1_F_F_stat.pdf}
+                \caption{}
+                \label{fig:costsG}
+        \end{subfigure}%
+        ~ %add desired spacing between images, e. g. ~, \quad, \qquad etc.
+          %(or a blank line to force the subfigure onto a new line)
+        \begin{subfigure}[b]{0.3\textwidth}
+                \centering
+                \includegraphics[width=\textwidth]{debug_10_50_05_1_T_F_stat.pdf}
+                \caption{}
+                \label{fig:costsH}
+        \end{subfigure}
+        ~ %add desired spacing between images, e. g. ~, \quad, \qquad etc.
+          %(or a blank line to force the subfigure onto a new line)
+        \begin{subfigure}[b]{0.3\textwidth}
+                \centering
+                \includegraphics[width=\textwidth]{debug_10_50_05_1_T_T_stat.pdf}
+                \caption{}
+                \label{fig:costsI}
+        \end{subfigure}
+
+% exploration rate = 1.0
+        \begin{subfigure}[b]{0.3\textwidth}
+                \centering
+                \includegraphics[width=\textwidth]{debug_10_50_1_1_F_F_stat.pdf}
+                \caption{}
+                \label{fig:costsJ}
+        \end{subfigure}%
+        ~ %add desired spacing between images, e. g. ~, \quad, \qquad etc.
+          %(or a blank line to force the subfigure onto a new line)
+        \begin{subfigure}[b]{0.3\textwidth}
+                \centering
+                \includegraphics[width=\textwidth]{debug_10_50_1_1_T_F_stat.pdf}
+                \caption{}
+                \label{fig:costsK}
+        \end{subfigure}
+        ~ %add desired spacing between images, e. g. ~, \quad, \qquad etc.
+          %(or a blank line to force the subfigure onto a new line)
+        \begin{subfigure}[b]{0.3\textwidth}
+                \centering
+                \includegraphics[width=\textwidth]{debug_10_50_1_1_T_T_stat.pdf}
+                \caption{}
+                \label{fig:costsL}
+        \end{subfigure}
+
+        \caption{Each figure shows the parent's average parse cost (red), the child's average parse cost (green), the parent's grammar size (pink), the child's grammar size (cyan) and the child's grammar cost (blue) for each iteration. The figures in the first, second and third column use uniform sampling, predicate sampling and template sampling, respectively. The four rows correspond to the exploration rates $\langle 0.0, 0.1, 0.5, 1.0 \rangle$.}
+        \label{fig:costs}
+\end{figure}
 
 \section{Results}
 \label{sec:results}
-\section{Conclusion}
-\label{sec:conclusion}
+The third column in figure \ref{fig:costs} shows that sampling both templates and predicates from the grammar (see section \ref{ssec:Template sampling}) causes the grammar size to quickly converge which produces only intentions with one formula. This is to be expected, since this sampling approach is analogous to the sampling of strings in \cite{zuidema2003poverty}, i.e. the parent's sampled intentions are fully conditioned on its grammar.
+
+The first column shows the other end of the spectrum: sampling intentions uniformly from a fixed set. The parent will always be likely to verbalize intentions that are not in its grammar, which means the language can never be too small. The iterative process does not produce a structured grammar, because the intentions produced by the parent are not dependent of the grammar it has learned when it was a child\footnote{Since sampling is not dependent of the grammar and each simulation used the same seed, all 4 plots show the same results.}. This can again be seen in the high cost of the child's grammar. After learning certain intentions as a child, in the next iteration it is just as likely to produce cheap intentions using the rules of its grammar as it is to produce expensive new intentions.
+
+Finally, we have chosen a middle ground (second column in figure \ref{fig:costs}) where the template of an intention is sampled uniformly but the the content of the intention is sampled conditioned on the parent's grammar. This sampling approach ensures the grammar remains expressive while at the same time favors intentions that can be constructed by the grammar. We expected an iterated effect would occur, in which the child's grammar cost would gradually decrease over time. That, however, did not happen. The figures in the second column show a lower cost for the child's grammar compared to the first column, but experience more fluctuations. This is caused by the fact a child is more likely to send the observations it receives once it becomes a parent, which reduces the child's grammar cost. However, if the parent sends a lot of intentions that are unknown to the child, the child's grammar suddenly increases and all the progress made in previous iterations is lost.
+
+The different exploration rates do not account for much difference in the results when applied to uniform sampling or predicate sampling. With template sampling, the exploration rate denotes how quickly the iterative process converges. Figure \ref{fig:costsI} ($\epsilon = 0.5$) has a higher exploration rate than figure \ref{fig:costsF} ($\epsilon = 0.1$), which means that the iterative process in figure \ref{fig:costsI} is likely to find a cheap intention to communicate quicker than the process in figure \ref{fig:costsF} and thus converge faster. Figure \ref{fig:costsC} has an exploration rate $\epsilon = 0.0$, which means the parent will not sample new intentions after is has sampled the first one. Figure \ref{fig:costsL} ($\epsilon = 1.0$), on the other hand, continuously samples new intentions. 
+
 \section{Discussion}
 \label{sec:discussion}
+
+\section{Conclusion}
+\label{sec:conclusion}
+
 
 \bibliographystyle{plainnat}
 \bibliography{references}
