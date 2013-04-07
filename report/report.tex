@@ -1,5 +1,4 @@
 \documentclass[a4paper]{article}
-%\usepackage[a4paper,pdftex]{geometry}
 \usepackage[latin1]{inputenc}
 \usepackage[english]{babel}
 \usepackage{graphicx}
@@ -314,6 +313,16 @@ The different exploration rates do not account for much difference in the result
 
 \section{Discussion}
 \label{sec:discussion}
+The results with the predicate sampling technique did not show evidence for the grammar becoming increasingly structured and cheaper to learn over time. We believe the explanation for this is that the intentions received by a child during one iteration does not have enough influence on the intentions that are constructed in the next iteration. Uniform sampling of templates could cause so much variation that the amount of information that is transmitted from parent to child is too small. This can be solved by either reducing the amount of templates which can be sampled or by increasing the amount of intentions that are communicated per iteration.
+
+A big difference between the context-free rules discussed in this paper and the context-free rules used in \cite{zuidema2003poverty} is that the left-hand-side of one of our rules is not an abstraction of its right-hand-side but its union. This means our grammar is not a true context-free-grammar, but instead is mildly context-sensitive. It would be interesting to see the effect of using abstract semantic categories on the left-hand-side of rules. Figure \ref{fig:abstraction} shows an example of a derivation with abstracted intentions: \textit{tweety} and \textit{pussycat} are substituted by the intentions \textit{bird} and \textit{cat}, respectively. Each step in the derivation the intentions become more abstract until a unique intention \textit{I} is reached that covers the whole sentence. This approach, however, would greatly complicate the problem of iterated learning, since clustering would need to be performed in order to form abstract intentions and know which intentions should be substituted by this abstract intention.
+
+\begin{figure}[h!]
+\centering
+\Tree [.\text{I} [.\text{[(object, 1), (action, 1, 2), (object, 2)]} [.\text{[(bird, 1)]} [.\text{[(tweety, 1)]} tweety ]] [.\text{[(saw, 1, 2), (cat, 2)]} [.\text{[(saw, 1, 2)]} saw ] [.\text{[(pussycat, 2)]} pussycat ]]]]
+\caption{A derivation with abstracted intentions}
+\label{fig:abstraction}
+\end{figure}
 
 \section{Conclusion}
 \label{sec:conclusion}
